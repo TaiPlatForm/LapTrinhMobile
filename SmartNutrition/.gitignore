@@ -1,0 +1,25 @@
+# Android Studio / IntelliJ
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/app/build
+/app/release
+
+# Google Services (chứa API keys - KHÔNG push lên GitHub)
+# Uncomment dòng dưới nếu muốn giữ private:
+# google-services.json
+
+# Gemini API Key
+# KHÔNG BAO GIỜ push local.properties (chứa GEMINI_API_KEY)

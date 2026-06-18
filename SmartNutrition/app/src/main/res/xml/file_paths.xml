@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Cho phép FileProvider truy cập thư mục Downloads (Module 5: xuất PDF) -->
+    <external-path name="downloads" path="Download/" />
+    <cache-path name="cache" path="." />
+</paths>

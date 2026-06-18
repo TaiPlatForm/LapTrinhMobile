@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Leaf / Nutrition icon - white on transparent -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        <!-- Leaf shape -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,28 C54,28 74,38 74,58 C74,72 64,78 54,78 C44,78 34,72 34,58 C34,38 54,28 54,28Z" />
+        <!-- Leaf vein -->
+        <path
+            android:strokeColor="#10B981"
+            android:strokeWidth="2"
+            android:pathData="M54,35 L54,70 M54,45 L44,52 M54,52 L64,48 M54,58 L46,62 M54,64 L62,60" />
+    </group>
+</vector>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smart Nutrition</string>
+
+    <!-- ═══ Bottom Navigation ═══ -->
+    <string name="nav_home">Home</string>
+    <string name="nav_pantry">Pantry</string>
+    <string name="nav_meal">Meal Plan</string>
+    <string name="nav_habit">Habits</string>
+    <string name="nav_analytics">Analytics</string>
+
+    <!-- ═══ Module 1: Auth ═══ -->
+    <string name="login_title">Login</string>
+    <string name="register_title">Register</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="google_signin">Sign in with Google</string>
+    <string name="no_account">Don\'t have an account? Register</string>
+    <string name="profile_setup_title">Profile Setup</string>
+
+    <!-- ═══ Module 2: Pantry ═══ -->
+    <string name="pantry_title">Food Pantry</string>
+    <string name="add_food">Add Food</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="scan_barcode">Scan Barcode</string>
+    <string name="status_fresh">Fresh</string>
+    <string name="status_expiring">Expiring Soon</string>
+    <string name="status_expired">Expired</string>
+
+    <!-- ═══ Module 3: Meal Planner ═══ -->
+    <string name="meal_plan_title">Meal Plan</string>
+    <string name="generate_meal_plan">Generate Meal Plan with AI</string>
+    <string name="breakfast">Breakfast</string>
+    <string name="lunch">Lunch</string>
+    <string name="dinner">Dinner</string>
+
+    <!-- ═══ Module 4: Habits ═══ -->
+    <string name="habit_title">Habit Tracker</string>
+    <string name="water_reminder_title">Time to drink water!</string>
+    <string name="water_reminder_body">Drink a glass of water to stay healthy!</string>
+    <string name="vitamin_reminder_title">Time to take vitamins!</string>
+
+    <!-- ═══ Module 5: Analytics ═══ -->
+    <string name="analytics_title">Analytics</string>
+    <string name="settings_title">Settings</string>
+    <string name="weight_label">Weight</string>
+    <string name="calories_label">Calories</string>
+    <string name="export_pdf">Export PDF</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="language">Language</string>
+    <string name="logout">Logout</string>
+
+    <!-- ═══ Chung ═══ -->
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="retry">Retry</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="confirm_delete">Are you sure you want to delete?</string>
+</resources>

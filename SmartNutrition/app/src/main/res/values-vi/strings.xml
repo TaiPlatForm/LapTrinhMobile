@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smart Nutrition</string>
+
+    <!-- ═══ Bottom Navigation ═══ -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_pantry">Kho TP</string>
+    <string name="nav_meal">Thực đơn</string>
+    <string name="nav_habit">Thói quen</string>
+    <string name="nav_analytics">Thống kê</string>
+
+    <!-- ═══ Module 1: Auth ═══ -->
+    <string name="login_title">Đăng nhập</string>
+    <string name="register_title">Đăng ký</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Mật khẩu</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="register_button">Đăng ký</string>
+    <string name="google_signin">Đăng nhập bằng Google</string>
+    <string name="no_account">Chưa có tài khoản? Đăng ký ngay</string>
+    <string name="profile_setup_title">Thiết lập thể trạng</string>
+
+    <!-- ═══ Module 2: Pantry ═══ -->
+    <string name="pantry_title">Kho thực phẩm</string>
+    <string name="add_food">Thêm thực phẩm</string>
+    <string name="take_photo">Chụp ảnh</string>
+    <string name="scan_barcode">Quét mã vạch</string>
+    <string name="status_fresh">Tươi ngon</string>
+    <string name="status_expiring">Sắp hết hạn</string>
+    <string name="status_expired">Đã hết hạn</string>
+
+    <!-- ═══ Module 3: Meal Planner ═══ -->
+    <string name="meal_plan_title">Thực đơn AI</string>
+    <string name="generate_meal_plan">Lên thực đơn bằng AI</string>
+    <string name="breakfast">Bữa sáng</string>
+    <string name="lunch">Bữa trưa</string>
+    <string name="dinner">Bữa tối</string>
+
+    <!-- ═══ Module 4: Habits ═══ -->
+    <string name="habit_title">Theo dõi thói quen</string>
+    <string name="water_reminder_title">Đã đến giờ uống nước!</string>
+    <string name="water_reminder_body">Uống 1 cốc nước để giữ sức khỏe nhé!</string>
+    <string name="vitamin_reminder_title">Đã đến giờ uống vitamin!</string>
+
+    <!-- ═══ Module 5: Analytics ═══ -->
+    <string name="analytics_title">Thống kê</string>
+    <string name="settings_title">Cài đặt</string>
+    <string name="weight_label">Cân nặng</string>
+    <string name="calories_label">Calo</string>
+    <string name="export_pdf">Xuất PDF</string>
+    <string name="dark_mode">Chế độ tối</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="logout">Đăng xuất</string>
+
+    <!-- ═══ Chung ═══ -->
+    <string name="loading">Đang tải…</string>
+    <string name="error_generic">Đã xảy ra lỗi. Vui lòng thử lại.</string>
+    <string name="retry">Thử lại</string>
+    <string name="save">Lưu</string>
+    <string name="cancel">Hủy</string>
+    <string name="delete">Xóa</string>
+    <string name="confirm_delete">Bạn có chắc chắn muốn xóa?</string>
+</resources>

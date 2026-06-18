@@ -1,0 +1,97 @@
+ĐỀ TÀI: Ứng dụng Quản lý Dinh dưỡng Cá nhân với AI (Smart Nutrition)
+Nền tảng: Android Native (Java) + Firebase
+Nhóm: 5 thành viên
+
+Mô tả đề tài:
+Ứng dụng giúp người dùng quản lý dinh dưỡng cá nhân thông qua AI. Người dùng chụp ảnh hoặc quét mã vạch thực phẩm có sẵn trong tủ lạnh/bếp ăn, AI (Gemini) sẽ tự động nhận diện thực phẩm và ước tính lượng Calo, Protein. Dựa vào chỉ số cơ thể (BMI, BMR, TDEE) và mục tiêu cá nhân (tăng cơ, giảm mỡ, duy trì), AI sẽ tự động lên thực đơn món ăn cho cả tuần từ chính các nguyên liệu đang có sẵn, ưu tiên nguyên liệu sắp hết hạn. App còn tích hợp hệ thống nhắc nhở uống nước, uống vitamin theo giờ sinh học và biểu đồ theo dõi sức khỏe trực quan.
+
+Công nghệ sử dụng:
+- Firebase Authentication (Đăng nhập Email/Password + Google Sign-In)
+- Cloud Firestore (Database NoSQL + Offline Persistence)
+- Gemini AI SDK (Vision API nhận diện thực phẩm + Text API lên thực đơn)
+- CameraX (Chụp ảnh thực phẩm)
+- ML Kit Barcode Scanning (Quét mã vạch)
+- MPAndroidChart (Biểu đồ cân nặng, calo)
+- AlarmManager + BroadcastReceiver (Nhắc nhở cục bộ)
+- PdfDocument (Xuất báo cáo PDF)
+
+================================================================================
+PHÂN CÔNG 5 THÀNH VIÊN
+================================================================================
+
+Thành viên 1 — Module Auth & Profile Setup [Độ khó: ⭐⭐ Dễ]
+Phụ trách toàn bộ hệ thống xác thực và quản lý hồ sơ sức khỏe cá nhân.
+- Đăng ký và Đăng nhập bằng Email/Password hoặc Google Sign-In (Firebase Auth + Google Credential Manager).
+- Thiết lập thể trạng ban đầu: nhập tuổi, chiều cao, cân nặng, giới tính, mức độ vận động, mục tiêu sức khỏe.
+- Tự động tính toán các chỉ số sức khỏe trên app: BMI, BMR (Harris-Benedict), TDEE, Macros mục tiêu (Protein/Carb/Fat).
+- Xem và cập nhật thông tin cá nhân.
+- Nhật ký cân nặng hàng ngày (Weight Logger) phục vụ vẽ biểu đồ.
+- Firestore: users/{uid}, users/{uid}/weightLog/{date}
+- Màn hình: LoginActivity, RegisterActivity, ProfileSetupActivity, ProfileViewActivity, WeightLogActivity
+⚠️ LƯU Ý: Module này phải XONG ĐẦU TIÊN (tuần 1) vì tất cả module khác đều cần UID từ Auth.
+
+Thành viên 2 — Module Pantry Scanner & Inventory [Độ khó: ⭐⭐⭐⭐ Khó]
+Phụ trách toàn bộ hệ thống quét, nhận diện và quản lý kho thực phẩm.
+- Chụp ảnh thực phẩm tươi sống → gửi ảnh (Base64) lên Gemini Vision API → AI nhận diện tên, calo, protein → user xác nhận → lưu vào kho.
+- Quét mã vạch (Barcode) thực phẩm đóng hộp bằng ML Kit Barcode Scanning → tra cứu thông tin sản phẩm.
+- Hiển thị danh sách kho thực phẩm (RecyclerView) với bộ lọc theo trạng thái hạn sử dụng.
+- Logic cảnh báo hạn sử dụng: Xanh (còn >3 ngày), Vàng (còn 1-3 ngày), Đỏ (đã hết hạn).
+- Xem chi tiết, chỉnh sửa số lượng, xóa thực phẩm.
+- Firestore: users/{uid}/pantry/{autoId}
+- Màn hình: PantryListActivity, CameraCaptureActivity, FoodResultActivity, BarcodeScanActivity, FoodDetailActivity
+- Thư viện: CameraX, ML Kit Barcode, Gemini AI SDK, Gson
+⚠️ LƯU Ý: Module khó nhất — nên giao cho người giỏi nhất hoặc chịu khó nhất trong nhóm.
+
+Thành viên 3 — Module AI Meal Planner [Độ khó: ⭐⭐⭐ Trung bình]
+Phụ trách hệ thống lên thực đơn thông minh bằng AI.
+- Khi user bấm "Lên thực đơn bằng AI": query kho pantry (ưu tiên sắp hết hạn) + lấy mục tiêu sức khỏe → ghép thành prompt gửi Gemini API.
+- Gemini trả về JSON thực đơn 7 ngày × 3 bữa (Sáng/Trưa/Tối) kèm nguyên liệu, định lượng, công thức nấu.
+- Hiển thị lịch ăn uống theo tuần trên Calendar UI (ViewPager + TabLayout).
+- Xem chi tiết công thức nấu từng món khi bấm vào.
+- Firestore: users/{uid}/mealPlans/{weekId}
+- Màn hình: MealPlanWeekActivity, MealDetailActivity
+- Thư viện: Gemini AI SDK (Text), Gson
+⚠️ LƯU Ý: Phụ thuộc TV2 — cần data từ pantry để gửi prompt. Nên dùng mock data để test trước khi TV2 xong.
+
+Thành viên 4 — Module Habit Tracker & Reminder [Độ khó: ⭐⭐⭐ Trung bình]
+Phụ trách hệ thống theo dõi thói quen và nhắc nhở sức khỏe hàng ngày.
+- Đặt lịch nhắc nhở uống nước định kỳ (VD: mỗi 2 tiếng từ 8:00 đến 22:00) bằng AlarmManager + BroadcastReceiver.
+- Nhắc nhở uống vitamin theo giờ cố định.
+- Hiển thị thông báo cục bộ (NotificationCompat) kèm chuông/rung khi đến giờ hẹn.
+- Dashboard ghi chép thói quen: CircularProgress uống nước (VD: 5/8 cốc), nút "+1 cốc", giờ ngủ.
+- BootReceiver: đặt lại tất cả alarm khi khởi động lại điện thoại.
+- Firestore: users/{uid}/habits/{date}
+- SharedPreferences: lưu cài đặt nhắc nhở (interval, giờ bắt đầu/kết thúc, bật/tắt)
+- Màn hình: HabitDashboardActivity, ReminderSettingsActivity
+⚠️ LƯU Ý: Cần xin quyền POST_NOTIFICATIONS runtime trên Android 13+.
+
+Thành viên 5 — Module Analytics & Settings [Độ khó: ⭐⭐ Dễ]
+Phụ trách tổng hợp dữ liệu, biểu đồ trực quan và cài đặt hệ thống.
+- Vẽ biểu đồ đường (LineChart) theo dõi cân nặng biến động theo tuần/tháng.
+- Vẽ biểu đồ cột (BarChart) so sánh lượng Calo nạp vào thực tế qua các ngày vs mục tiêu.
+- Xuất báo cáo dinh dưỡng định dạng PDF (Android PdfDocument API) lưu vào bộ nhớ điện thoại.
+- Cài đặt đa ngôn ngữ Tiếng Việt / English (Locale + strings.xml).
+- Cài đặt Theme Sáng/Tối (AppCompatDelegate).
+- Bật/tắt chế độ lưu trữ ngoại tuyến (Firestore Offline Persistence).
+- Nút Đăng xuất.
+- Firestore: CHỈ ĐỌC dữ liệu từ 4 module khác, không ghi dữ liệu mới.
+- Màn hình: AnalyticsActivity, SettingsActivity
+- Thư viện: MPAndroidChart, PdfDocument (Android SDK), SharedPreferences
+⚠️ LƯU Ý: Module này làm CUỐI CÙNG vì cần data từ tất cả module khác. TV5 nên hỗ trợ các TV khác trong 2 tuần đầu.
+
+================================================================================
+TỔNG KẾT ĐỘ KHÓ
+================================================================================
+TV1 (Auth & Profile)       ⬛⬛⬜⬜⬜  2/5 — Dễ         → Làm tuần 1
+TV2 (Pantry Scanner)       ⬛⬛⬛⬛⬜  4/5 — Khó        → Bắt đầu tuần 1, xong tuần 2-3
+TV3 (AI Meal Planner)      ⬛⬛⬛⬜⬜  3/5 — Trung bình → Làm tuần 2-3
+TV4 (Habit & Reminder)     ⬛⬛⬛⬜⬜  3/5 — Trung bình → Làm tuần 2-3
+TV5 (Analytics & Settings) ⬛⬛⬜⬜⬜  2/5 — Dễ         → Làm tuần 3-4
+
+================================================================================
+TIMELINE
+================================================================================
+Tuần 1: TV1 (Auth) xong ← tất cả chờ UID | TV2 setup Camera | TV3+TV4+TV5 làm UI mockup
+Tuần 2: TV2 (Pantry) + TV4 (Reminder) song song | TV3 làm Calendar UI + mock data | TV5 hỗ trợ team
+Tuần 3: TV3 (Meal AI) tích hợp data từ TV2 | TV2 + TV4 hoàn thiện | TV5 bắt đầu Analytics
+Tuần 4: TV5 (Analytics) tổng hợp | Cả nhóm test + fix bug + chuẩn bị báo cáo
