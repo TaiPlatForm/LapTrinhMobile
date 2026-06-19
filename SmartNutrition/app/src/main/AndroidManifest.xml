@@ -39,15 +39,14 @@
         </activity>
 
         <!-- ═══ Module 4: Receivers cho nhắc nhở ═══ -->
-        <!-- TV4: Uncomment khi implement -->
-        <!--
-        <receiver android:name=".habit.WaterReminderReceiver" android:exported="false" />
-        <receiver android:name=".habit.BootReceiver" android:exported="true">
+        <receiver android:name=".habit.receiver.WaterReminderReceiver" android:exported="false" />
+        <receiver android:name=".habit.receiver.WaterActionReceiver" android:exported="false" />
+        <receiver android:name=".habit.receiver.VitaminReminderReceiver" android:exported="false" />
+        <receiver android:name=".habit.receiver.BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        -->
 
         <!-- ═══ Module 5: FileProvider cho xuất PDF ═══ -->
         <provider
