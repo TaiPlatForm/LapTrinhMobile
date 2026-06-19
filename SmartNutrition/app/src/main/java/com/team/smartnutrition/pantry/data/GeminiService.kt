@@ -29,7 +29,7 @@ class GeminiService {
     companion object {
         private const val TAG = "GeminiService"
         private const val MAX_IMAGE_SIZE = 1024
-        private const val MODEL_NAME = "gemini-2.0-flash"
+        private const val MODEL_NAME = "gemini-2.5-flash"
 
         /** Prompt nhận diện thực phẩm (tiếng Việt) */
         private const val FOOD_RECOGNITION_PROMPT = """
