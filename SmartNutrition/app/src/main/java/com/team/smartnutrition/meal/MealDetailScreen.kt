@@ -38,6 +38,8 @@ import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
  *     - Section Nguyên liệu
  *     - Section Cách nấu (multi-line)
  */
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
 fun MealDetailScreen(
     navController: NavController,
@@ -50,6 +52,11 @@ fun MealDetailScreen(
     val dayLabel = uiState.mealPlan?.days?.getOrNull(dayIndex)?.dayLabel ?: ""
     val mealLabel = WeekUtils.mealTypeLabels[mealType] ?: mealType
 
+    // Tự động gọi tải chi tiết món ăn khi màn hình được tạo
+    LaunchedEffect(dayIndex, mealType) {
+        viewModel.loadMealDetail(dayIndex, mealType)
+    }
+
     Scaffold(
         topBar = {
             SmartTopBar(
@@ -58,29 +65,74 @@ fun MealDetailScreen(
             )
         }
     ) { padding ->
-        if (meal == null) {
-            // Fallback khi meal không tìm thấy trong ViewModel (VM mới, load đang diễn ra)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(modifier = Modifier.size(40.dp))
-                    Spacer(Modifier.height(12.dp))
+        when {
+            uiState.isGeneratingDetail -> {
+                // Đang gọi AI sinh chi tiết công thức
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(modifier = Modifier.size(44.dp))
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            text = "AI đang thiết lập công thức & nguyên liệu...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            uiState.detailErrorMessage != null -> {
+                // Lỗi khi tải chi tiết
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = uiState.detailErrorMessage ?: "Lỗi tải công thức",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.loadMealDetail(dayIndex, mealType) }
+                        ) {
+                            Text("Thử lại")
+                        }
+                    }
+                }
+            }
+            meal == null -> {
+                // Fallback khi không tìm thấy thông tin bữa ăn
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = "Đang tải thông tin bữa ăn...",
+                        text = "Không tìm thấy thông tin bữa ăn.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-        } else {
-            MealDetailContent(
-                meal = meal,
-                modifier = Modifier.padding(padding)
-            )
+            else -> {
+                // Thành công -> hiển thị giao diện
+                MealDetailContent(
+                    meal = meal,
+                    modifier = Modifier.padding(padding)
+                )
+            }
         }
     }
 }

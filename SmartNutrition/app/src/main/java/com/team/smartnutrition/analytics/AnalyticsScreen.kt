@@ -20,6 +20,11 @@ import com.team.smartnutrition.analytics.util.PdfExporter
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -107,7 +112,11 @@ fun AnalyticsScreen(navController: NavController) {
 fun TimeRangeSelector(selected: TimeRange, onSelect: (TimeRange) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -137,7 +146,11 @@ fun TimeRangeSelector(selected: TimeRange, onSelect: (TimeRange) -> Unit) {
 fun WeightChartSection(weightEntries: List<WeightChartEntry>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -172,11 +185,20 @@ fun WeightChartSection(weightEntries: List<WeightChartEntry>) {
                 
                 CartesianChartHost(
                     chart = rememberCartesianChart(
-                        rememberLineCartesianLayer(),
+                        rememberLineCartesianLayer(
+                            lineProvider = LineCartesianLayer.LineProvider.series(
+                                LineCartesianLayer.rememberLine(
+                                    fill = LineCartesianLayer.LineFill.single(
+                                        fill(MaterialTheme.colorScheme.primary)
+                                    )
+                                )
+                            )
+                        ),
                         startAxis = VerticalAxis.rememberStart(),
                         bottomAxis = HorizontalAxis.rememberBottom(
                             valueFormatter = CartesianValueFormatter { _, value, _ ->
-                                weightEntries.getOrNull(value.toInt())?.date?.takeLast(5) ?: ""
+                                val date = weightEntries.getOrNull(value.toInt())?.date ?: ""
+                                if (date.isEmpty()) " " else date.takeLast(5)
                             }
                         )
                     ),
@@ -204,7 +226,11 @@ fun WeightChartSection(weightEntries: List<WeightChartEntry>) {
 fun CalorieChartSection(entries: List<DailyCalorieEntry>, calorieTarget: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -246,11 +272,19 @@ fun CalorieChartSection(entries: List<DailyCalorieEntry>, calorieTarget: Int) {
                 
                 CartesianChartHost(
                     chart = rememberCartesianChart(
-                        rememberColumnCartesianLayer(),
+                        rememberColumnCartesianLayer(
+                            columnProvider = ColumnCartesianLayer.ColumnProvider.series(
+                                rememberLineComponent(
+                                    fill = fill(MaterialTheme.colorScheme.secondary),
+                                    thickness = 12.dp
+                                )
+                            )
+                        ),
                         startAxis = VerticalAxis.rememberStart(),
                         bottomAxis = HorizontalAxis.rememberBottom(
                             valueFormatter = CartesianValueFormatter { _, value, _ ->
-                                entries.getOrNull(value.toInt())?.dayLabel ?: ""
+                                val label = entries.getOrNull(value.toInt())?.dayLabel ?: ""
+                                if (label.isEmpty()) " " else label
                             }
                         )
                     ),

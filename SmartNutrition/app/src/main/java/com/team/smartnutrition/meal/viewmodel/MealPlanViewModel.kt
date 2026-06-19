@@ -6,6 +6,7 @@ import com.team.smartnutrition.auth.data.UserRepository
 import com.team.smartnutrition.meal.data.MealGeminiService
 import com.team.smartnutrition.meal.data.MealRepository
 import com.team.smartnutrition.meal.model.DayPlan
+import com.team.smartnutrition.meal.model.Ingredient
 import com.team.smartnutrition.meal.model.Meal
 import com.team.smartnutrition.meal.model.MealPlan
 import com.team.smartnutrition.meal.util.WeekUtils
@@ -29,7 +30,9 @@ data class MealPlanUiState(
     val isLoading: Boolean = true,            // Loading ban đầu (đọc Firestore)
     val isGenerating: Boolean = false,        // Đang gọi Gemini AI
     val loadingMessage: String = "",          // Câu chữ vui cho loading dialog
-    val errorMessage: String? = null          // Lỗi hiển thị cho user
+    val errorMessage: String? = null,         // Lỗi hiển thị cho user
+    val isGeneratingDetail: Boolean = false,  // Đang gọi AI tải chi tiết nguyên liệu + cách nấu cho 1 món
+    val detailErrorMessage: String? = null    // Lỗi khi tải chi tiết
 )
 
 /**
@@ -177,6 +180,93 @@ class MealPlanViewModel : ViewModel() {
      */
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    /**
+     * Tải chi tiết nguyên liệu + cách nấu cho một bữa ăn cụ thể của một ngày.
+     * Nếu món ăn đã có nguyên liệu -> bỏ qua (đã được lưu cache).
+     * Nếu chưa có -> gọi Gemini, sau đó cập nhật đối tượng MealPlan và lưu đè lên Firestore.
+     */
+    fun loadMealDetail(dayIndex: Int, mealType: String) {
+        val uid = mealRepository.currentUid ?: return
+        val currentPlan = _uiState.value.mealPlan ?: return
+        val day = currentPlan.days.getOrNull(dayIndex) ?: return
+        val meal = day.meals[mealType] ?: return
+
+        // Đã có chi tiết -> không gọi AI nữa
+        if (meal.ingredients.isNotEmpty() && meal.recipe.isNotEmpty()) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isGeneratingDetail = true,
+                    detailErrorMessage = null
+                )
+            }
+
+            try {
+                // 1. Đọc user profile để lấy mục tiêu sức khỏe
+                val user = userRepository.getUser(uid)
+                val userGoal = user?.goal ?: "maintain"
+                val goalVi = when (userGoal) {
+                    "lose_weight" -> "Giảm cân"
+                    "gain_muscle" -> "Tăng cơ"
+                    else -> "Duy trì cân nặng"
+                }
+
+                // 2. Gọi Gemini để lấy công thức chi tiết
+                val detailResult = mealGeminiService.generateMealDetail(
+                    mealName = meal.name,
+                    userGoal = goalVi,
+                    calorieTarget = meal.totalCalories
+                )
+
+                // 3. Cập nhật đối tượng MealPlan mới
+                val updatedIngredients = detailResult.ingredients.map {
+                    Ingredient(name = it.name, amount = it.amount)
+                }
+
+                val updatedMeal = meal.copy(
+                    ingredients = updatedIngredients,
+                    recipe = detailResult.recipe
+                )
+
+                val updatedMeals = day.meals.toMutableMap().apply {
+                    put(mealType, updatedMeal)
+                }
+
+                val updatedDay = day.copy(meals = updatedMeals)
+
+                val updatedDays = currentPlan.days.toMutableList().apply {
+                    set(dayIndex, updatedDay)
+                }
+
+                val updatedPlan = currentPlan.copy(days = updatedDays)
+
+                // 4. Lưu đè lên local cache & Firestore (offline-first)
+                mealRepository.saveMealPlan(uid, updatedPlan)
+
+                // 5. Cập nhật UI State
+                _uiState.update {
+                    it.copy(
+                        mealPlan = updatedPlan,
+                        isGeneratingDetail = false,
+                        detailErrorMessage = null
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isGeneratingDetail = false,
+                        detailErrorMessage = "Không thể tải công thức: ${e.message ?: "Lỗi kết nối"}"
+                    )
+                }
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════

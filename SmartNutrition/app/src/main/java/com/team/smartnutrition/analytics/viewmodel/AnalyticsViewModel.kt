@@ -6,6 +6,7 @@ import com.team.smartnutrition.analytics.data.AnalyticsRepository
 import com.team.smartnutrition.analytics.model.*
 import com.team.smartnutrition.auth.model.User
 import com.team.smartnutrition.meal.util.WeekUtils
+import com.team.smartnutrition.analytics.util.MockDataSeeder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -48,6 +49,9 @@ class AnalyticsViewModel : ViewModel() {
             _error.value = null
             try {
                 val uid = repository.currentUid ?: throw Exception("Chưa đăng nhập")
+                
+                // Nạp dữ liệu ảo (Mock Data) lên Firestore cho User hiện tại
+                MockDataSeeder.seedMockData(uid)
                 
                 // Load user profile
                 _userProfile.value = repository.getUserProfile(uid)

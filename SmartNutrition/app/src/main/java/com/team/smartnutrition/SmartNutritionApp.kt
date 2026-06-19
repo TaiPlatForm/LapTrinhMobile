@@ -28,5 +28,13 @@ class SmartNutritionApp : Application() {
             if (isDark) AppCompatDelegate.MODE_NIGHT_YES
             else AppCompatDelegate.MODE_NIGHT_NO
         )
+
+        // ═══ Khôi phục Ngôn ngữ từ SharedPreferences ═══
+        val langCode = prefs.getString("language", "vi") ?: "vi"
+        val locale = java.util.Locale(langCode)
+        java.util.Locale.setDefault(locale)
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

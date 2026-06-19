@@ -36,10 +36,10 @@ class MealGeminiService {
 
     companion object {
         private const val TAG = "MealGeminiService"
-        private const val MODEL_NAME = "gemini-1.5-flash"  // Nhanh hơn, tốt cho JSON cấu trúc
-        private const val TIMEOUT_MS = 90_000L  // 90s để an toàn
+        private const val MODEL_NAME = "gemini-2.5-flash"  // Dùng model hỗ trợ trên endpoint
+        private const val TIMEOUT_MS = 90_000L  // 90s để AI kịp tạo thực đơn lớn
 
-        /** System prompt tiếng Việt - ép AI trả JSON chuẩn */
+        /** System prompt tiếng Việt - ép AI trả JSON chuẩn (rút gọn để tạo nhanh) */
         private const val SYSTEM_PROMPT = """
 Bạn là chuyên gia dinh dưỡng Việt Nam. Lên thực đơn 7 ngày (Thứ 2 → Chủ Nhật), mỗi ngày 3 bữa (breakfast, lunch, dinner).
 
@@ -49,7 +49,7 @@ QUY TẮC:
 - Ưu tiên sử dụng nguyên liệu từ danh sách "Kho thực phẩm" bên dưới (nếu có)
 - Calo mỗi ngày bám sát mục tiêu được cung cấp (±10%)
 - KHÔNG lặp lại cùng 1 món trong tuần
-- Mỗi bữa phải có đủ: tên món, calo, protein, nguyên liệu kèm định lượng, công thức nấu
+- Chỉ trả về tên món ăn, lượng calo, lượng protein (KHÔNG kèm nguyên liệu và công thức nấu)
 
 TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap trong markdown:
 {
@@ -60,9 +60,7 @@ TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap 
         "breakfast": {
           "name": "tên món bằng tiếng Việt",
           "totalCalories": 450,
-          "totalProtein": 25,
-          "ingredients": [{"name": "nguyên liệu", "amount": "100g"}],
-          "recipe": "1. Bước 1\n2. Bước 2\n3. Bước 3"
+          "totalProtein": 25
         },
         "lunch": {},
         "dinner": {}
@@ -129,6 +127,65 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
 
         return parseAndValidate(responseText, user.calorieTarget)
     }
+
+    /**
+     * Gọi Gemini để generate chi tiết nguyên liệu + công thức của 1 món ăn cụ thể.
+     */
+    suspend fun generateMealDetail(
+        mealName: String,
+        userGoal: String,
+        calorieTarget: Int
+    ): MealDetailResult {
+        val prompt = """
+Bạn là chuyên gia dinh dưỡng Việt Nam. Cung cấp danh sách nguyên liệu và công thức nấu ăn chi tiết cho món ăn sau: "$mealName".
+Thông tin người dùng:
+- Mục tiêu sức khỏe: $userGoal
+- Lượng Calo ước tính của bữa này: $calorieTarget kcal
+
+TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap trong markdown:
+{
+  "ingredients": [
+    {"name": "tên nguyên liệu 1", "amount": "định lượng (ví dụ: 100g, 2 quả, 1 thìa cà phê)"}
+  ],
+  "recipe": "1. Bước 1...\n2. Bước 2...\n3. Bước 3..."
+}
+
+QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
+
+        val response = try {
+            withTimeout(45000L) { // 45s cho 1 món là dư dả
+                model.generateContent(prompt)
+            }
+        } catch (e: TimeoutCancellationException) {
+            Log.e(TAG, "Gemini detail timeout after 45s")
+            throw Exception("AI mất quá nhiều thời gian để tạo công thức. Thử lại.")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Gemini detail API error", e)
+            throw Exception("Lỗi kết nối AI khi tạo công thức: ${e.message ?: "Không xác định"}")
+        }
+
+        val responseText = response.text ?: throw Exception("AI không trả về công thức")
+        val jsonString = stripMarkdownWrapper(responseText)
+
+        return try {
+            Gson().fromJson(jsonString, MealDetailResult::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Detail JSON parse fail: $jsonString", e)
+            throw Exception("Lỗi định dạng công thức từ AI. Thử lại.")
+        }
+    }
+
+    data class MealDetailResult(
+        val ingredients: List<IngredientResult> = emptyList(),
+        val recipe: String = ""
+    )
+    data class IngredientResult(
+        val name: String = "",
+        val amount: String = ""
+    )
+
 
     // ═══════════════════════════════════════════════════
     // PRIVATE: BUILD PROMPT

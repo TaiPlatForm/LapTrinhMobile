@@ -61,6 +61,14 @@
     <string name="calorie_target_label">Mục tiêu: %1$d kcal/ngày</string>
     <string name="range_week">Tuần</string>
     <string name="range_month">Tháng</string>
+    <string name="settings_category_ui">Giao diện &amp; Trải nghiệm</string>
+    <string name="settings_dark_mode_desc">Chuyển đổi giao diện sáng/tối toàn ứng dụng</string>
+    <string name="settings_category_lang">Ngôn ngữ &amp; Địa phương</string>
+    <string name="settings_category_data">Dữ liệu &amp; Đồng bộ</string>
+    <string name="settings_offline_sync">Đồng bộ ngoại tuyến</string>
+    <string name="settings_offline_sync_desc">Tự động lưu và đồng bộ khi có mạng trở lại</string>
+    <string name="settings_logout_desc">Đăng xuất khỏi tài khoản hiện tại</string>
+    <string name="settings_app_version">Phiên bản 1.0.0 (Đang phát triển)</string>
 
     <!-- ═══ Chung ═══ -->
     <string name="loading">Đang tải…</string>

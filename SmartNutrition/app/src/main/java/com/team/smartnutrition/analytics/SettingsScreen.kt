@@ -57,11 +57,11 @@ fun SettingsScreen(navController: NavController) {
 
             // Giao diện & Trải nghiệm
             item {
-                SettingsSection(title = stringResource(R.string.dark_mode)) {
+                SettingsSection(title = stringResource(R.string.settings_category_ui)) {
                     SettingsSwitchRow(
                         icon = Icons.Filled.NightlightRound,
                         title = stringResource(R.string.dark_mode),
-                        subtitle = "Chuyển đổi giao diện sáng/tối toàn ứng dụng",
+                        subtitle = stringResource(R.string.settings_dark_mode_desc),
                         checked = isDarkMode,
                         onCheckedChange = { viewModel.toggleDarkMode() }
                     )
@@ -70,7 +70,7 @@ fun SettingsScreen(navController: NavController) {
 
             // Ngôn ngữ & Địa phương
             item {
-                SettingsSection(title = stringResource(R.string.language)) {
+                SettingsSection(title = stringResource(R.string.settings_category_lang)) {
                     SettingsLanguageRow(
                         icon = Icons.Filled.Language,
                         title = stringResource(R.string.language),
@@ -83,11 +83,11 @@ fun SettingsScreen(navController: NavController) {
 
             // Dữ liệu & Đồng bộ
             item {
-                SettingsSection(title = "Dữ liệu & Đồng bộ") {
+                SettingsSection(title = stringResource(R.string.settings_category_data)) {
                     SettingsSwitchRow(
                         icon = Icons.Filled.Sync,
-                        title = "Đồng bộ ngoại tuyến",
-                        subtitle = "Tự động lưu và đồng bộ khi có mạng trở lại",
+                        title = stringResource(R.string.settings_offline_sync),
+                        subtitle = stringResource(R.string.settings_offline_sync_desc),
                         checked = isOfflineEnabled,
                         onCheckedChange = { viewModel.toggleOfflineSync() }
                     )
@@ -100,7 +100,7 @@ fun SettingsScreen(navController: NavController) {
                     SettingsClickableRow(
                         icon = Icons.AutoMirrored.Filled.Logout,
                         title = stringResource(R.string.logout),
-                        subtitle = "Đăng xuất khỏi tài khoản hiện tại",
+                        subtitle = stringResource(R.string.settings_logout_desc),
                         onClick = { showLogoutDialog = true },
                         textColor = MaterialTheme.colorScheme.error
                     )
@@ -134,7 +134,7 @@ fun SettingsScreen(navController: NavController) {
                                 style = MaterialTheme.typography.titleSmall
                             )
                             Text(
-                                text = "Phiên bản 1.0.0 (Debug)",
+                                text = stringResource(R.string.settings_app_version),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
