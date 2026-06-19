@@ -81,10 +81,17 @@ class UserRepository {
      * Dùng khi login để quyết định navigate ProfileSetup hay Home.
      */
     suspend fun hasProfile(uid: String): Boolean {
-        val doc = kotlinx.coroutines.withTimeoutOrNull(10000) {
-            firestore.collection("users").document(uid).get().await()
-        } ?: throw Exception("timeout")
-        return doc.exists()
+        return try {
+            val doc = kotlinx.coroutines.withTimeout(3000) {
+                firestore.collection("users").document(uid).get().await()
+            }
+            doc.exists()
+        } catch (e: Exception) {
+            // Fallback đọc từ cache local
+            val doc = firestore.collection("users").document(uid)
+                .get(com.google.firebase.firestore.Source.CACHE).await()
+            doc.exists()
+        }
     }
 
     /**
@@ -92,9 +99,15 @@ class UserRepository {
      * @return User hoặc null nếu chưa có
      */
     suspend fun getUser(uid: String): User? {
-        val doc = kotlinx.coroutines.withTimeoutOrNull(10000) {
-            firestore.collection("users").document(uid).get().await()
-        } ?: throw Exception("timeout")
+        val doc = try {
+            kotlinx.coroutines.withTimeout(3000) {
+                firestore.collection("users").document(uid).get().await()
+            }
+        } catch (e: Exception) {
+            // Fallback đọc từ cache local
+            firestore.collection("users").document(uid)
+                .get(com.google.firebase.firestore.Source.CACHE).await()
+        }
         return doc.toObject(User::class.java)?.copy(uid = uid)
     }
 
@@ -126,11 +139,9 @@ class UserRepository {
             data["createdAt"] = Timestamp.now()
         }
 
-        kotlinx.coroutines.withTimeoutOrNull(10000) {
-            firestore.collection("users").document(user.uid)
-                .set(data, com.google.firebase.firestore.SetOptions.merge())
-                .await()
-        } ?: throw Exception("timeout")
+        // Ghi bất đồng bộ (offline-first) - ghi lập tức vào SQLite cache
+        firestore.collection("users").document(user.uid)
+            .set(data, com.google.firebase.firestore.SetOptions.merge())
     }
 
     // ═══ FIRESTORE: WEIGHT LOG ═══
@@ -147,7 +158,7 @@ class UserRepository {
             "loggedAt" to Timestamp.now()
         )
 
-        // Batch write: cập nhật cả weightLog và user profile cùng lúc
+        // Batch write: cập nhật cả weightLog và user profile cùng lúc bất đồng bộ
         val batch = firestore.batch()
 
         // 1. Upsert weightLog/{date}
@@ -163,9 +174,8 @@ class UserRepository {
             "updatedAt" to Timestamp.now()
         ))
 
-        kotlinx.coroutines.withTimeoutOrNull(10000) {
-            batch.commit().await()
-        } ?: throw Exception("timeout")
+        // Ghi bất đồng bộ (offline-first)
+        batch.commit()
     }
 
     /**
@@ -173,14 +183,24 @@ class UserRepository {
      * @param limit số lượng tối đa entries trả về
      */
     suspend fun getWeightHistory(uid: String, limit: Long = 30): List<WeightEntry> {
-        val snapshot = kotlinx.coroutines.withTimeoutOrNull(10000) {
+        val snapshot = try {
+            kotlinx.coroutines.withTimeout(3000) {
+                firestore.collection("users").document(uid)
+                    .collection("weightLog")
+                    .orderBy("loggedAt", Query.Direction.DESCENDING)
+                    .limit(limit)
+                    .get()
+                    .await()
+            }
+        } catch (e: Exception) {
+            // Fallback đọc từ cache local
             firestore.collection("users").document(uid)
                 .collection("weightLog")
                 .orderBy("loggedAt", Query.Direction.DESCENDING)
                 .limit(limit)
-                .get()
+                .get(com.google.firebase.firestore.Source.CACHE)
                 .await()
-        } ?: throw Exception("timeout")
+        }
 
         return snapshot.documents.map { doc ->
             doc.toObject(WeightEntry::class.java)?.copy(date = doc.id)

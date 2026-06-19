@@ -47,9 +47,10 @@ class PantryRepository {
         val data = itemToMap(item).toMutableMap()
         data["addedAt"] = Timestamp.now()
 
-        val docRef = kotlinx.coroutines.withTimeoutOrNull(10000) {
-            pantryRef(uid).add(data).await()
-        } ?: throw Exception("Timeout khi thêm thực phẩm")
+        // Tạo document ID tự động trước ở client
+        val docRef = pantryRef(uid).document()
+        // Ghi bất đồng bộ (offline-first) - ghi lập tức vào SQLite cache của thiết bị
+        docRef.set(data)
 
         return docRef.id
     }
@@ -83,9 +84,14 @@ class PantryRepository {
      * @return PantryItem hoặc null nếu không tồn tại
      */
     suspend fun getItem(uid: String, itemId: String): PantryItem? {
-        val doc = kotlinx.coroutines.withTimeoutOrNull(10000) {
-            pantryRef(uid).document(itemId).get().await()
-        } ?: throw Exception("Timeout khi đọc thực phẩm")
+        val doc = try {
+            kotlinx.coroutines.withTimeout(3000) {
+                pantryRef(uid).document(itemId).get().await()
+            }
+        } catch (e: Exception) {
+            // Fallback đọc từ cache local
+            pantryRef(uid).document(itemId).get(com.google.firebase.firestore.Source.CACHE).await()
+        }
 
         return doc.toObject(PantryItem::class.java)?.copy(id = doc.id)
     }
@@ -95,14 +101,24 @@ class PantryRepository {
      * Dùng cho Module 3 (AI Meal Planner) để lấy nguyên liệu.
      */
     suspend fun getAvailableItems(uid: String): List<PantryItem> {
-        val snapshot = kotlinx.coroutines.withTimeoutOrNull(10000) {
+        val snapshot = try {
+            kotlinx.coroutines.withTimeout(3000) {
+                pantryRef(uid)
+                    .whereNotEqualTo("status", "expired")
+                    .orderBy("status")
+                    .orderBy("expiryDate", Query.Direction.ASCENDING)
+                    .get()
+                    .await()
+            }
+        } catch (e: Exception) {
+            // Fallback đọc từ cache local
             pantryRef(uid)
                 .whereNotEqualTo("status", "expired")
                 .orderBy("status")
                 .orderBy("expiryDate", Query.Direction.ASCENDING)
-                .get()
+                .get(com.google.firebase.firestore.Source.CACHE)
                 .await()
-        } ?: throw Exception("Timeout khi đọc kho thực phẩm")
+        }
 
         return snapshot.documents.map { doc ->
             doc.toObject(PantryItem::class.java)?.copy(id = doc.id)
@@ -117,9 +133,8 @@ class PantryRepository {
      * @param updates Map chứa field name → value mới
      */
     suspend fun updateItem(uid: String, itemId: String, updates: Map<String, Any>) {
-        kotlinx.coroutines.withTimeoutOrNull(10000) {
-            pantryRef(uid).document(itemId).update(updates).await()
-        } ?: throw Exception("Timeout khi cập nhật thực phẩm")
+        // Ghi bất đồng bộ (offline-first)
+        pantryRef(uid).document(itemId).update(updates)
     }
 
     // ═══ DELETE ═══
@@ -128,9 +143,8 @@ class PantryRepository {
      * Xóa 1 thực phẩm khỏi kho.
      */
     suspend fun deleteItem(uid: String, itemId: String) {
-        kotlinx.coroutines.withTimeoutOrNull(10000) {
-            pantryRef(uid).document(itemId).delete().await()
-        } ?: throw Exception("Timeout khi xóa thực phẩm")
+        // Ghi bất đồng bộ (offline-first)
+        pantryRef(uid).document(itemId).delete()
     }
 
     // ═══ HELPER: Convert PantryItem → Map ═══
