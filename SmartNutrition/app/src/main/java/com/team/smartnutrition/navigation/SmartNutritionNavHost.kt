@@ -40,11 +40,12 @@ import com.team.smartnutrition.pantry.PantryListScreen
 @Composable
 fun SmartNutritionNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestination: String = Screen.Login.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         // ═══════════════════════════════════════

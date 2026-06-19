@@ -19,8 +19,18 @@ local.properties
 /app/release
 
 # Google Services (chứa API keys - KHÔNG push lên GitHub)
-# Uncomment dòng dưới nếu muốn giữ private:
-# google-services.json
+google-services.json
 
-# Gemini API Key
-# KHÔNG BAO GIỜ push local.properties (chứa GEMINI_API_KEY)
+# Keystore / Signing files (File khóa chữ ký ứng dụng)
+*.jks
+*.keystore
+*.pk8
+*.pem
+
+# Secrets / API Keys
+secrets.properties
+local.properties
+
+# Google Services Account Keys (Publishing/Firebase admin keys)
+*-key.json
+*service-account*.json

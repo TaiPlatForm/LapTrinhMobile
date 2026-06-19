@@ -1,29 +1,211 @@
 package com.team.smartnutrition.auth
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MonitorWeight
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.team.smartnutrition.common.components.PlaceholderScreen
+import com.team.smartnutrition.auth.util.HealthCalculator
+import com.team.smartnutrition.auth.viewmodel.WeightLogViewModel
+import com.team.smartnutrition.common.components.SmartTopBar
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * ═══════════════════════════════════════════
  * MODULE 1 - TV1: NHẬT KÝ CÂN NẶNG
  * ═══════════════════════════════════════════
  *
- * TODO cho TV1:
- * 1. Input nhập cân nặng hôm nay
- * 2. Tính lại BMI theo cân nặng mới
- * 3. Lưu vào Firestore users/{uid}/weightLog/{date}
- * 4. Hiển thị danh sách lịch sử cân nặng (LazyColumn)
+ * Tính năng:
+ * - Nhập cân nặng hôm nay + tính BMI realtime
+ * - Lưu vào weightLog/{date} + update user profile
+ * - Hiển thị lịch sử cân nặng (LazyColumn DESC)
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeightLogScreen(navController: NavController) {
-    PlaceholderScreen(
-        moduleName = "Nhật ký cân nặng",
-        moduleNumber = 1,
-        assignedTo = "TV1",
-        description = "Nhập cân nặng hàng ngày, tự tính lại BMI. Hiển thị lịch sử cân nặng theo ngày.",
-        icon = Icons.Filled.MonitorWeight
-    )
+fun WeightLogScreen(
+    navController: NavController,
+    viewModel: WeightLogViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val displayFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    // Handle messages
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            snackbarHostState.showSnackbar("✅ Đã lưu cân nặng hôm nay!")
+            viewModel.clearSaveSuccess()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            SmartTopBar(
+                title = "Nhật ký cân nặng",
+                onBackClick = { navController.popBackStack() }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        if (uiState.isLoading) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // ═══ Input Card ═══
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Column(Modifier.padding(20.dp)) {
+                            Text("Cân nặng hôm nay",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Spacer(Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = uiState.currentWeight,
+                                onValueChange = { viewModel.updateWeight(it) },
+                                label = { Text("Cân nặng (kg)") },
+                                leadingIcon = { Icon(Icons.Filled.MonitorWeight, null) },
+                                suffix = { Text("kg") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(onDone = {
+                                    focusManager.clearFocus()
+                                    viewModel.saveWeight()
+                                }),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+
+                            // BMI Preview
+                            uiState.calculatedBmi?.let { bmi ->
+                                Spacer(Modifier.height(8.dp))
+                                Text("BMI mới: ${"%.2f".format(bmi)} (${HealthCalculator.getBmiCategory(bmi)})",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+                            Button(
+                                onClick = { focusManager.clearFocus(); viewModel.saveWeight() },
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                enabled = !uiState.isSaving && uiState.currentWeight.toDoubleOrNull() != null
+                            ) {
+                                if (uiState.isSaving) {
+                                    CircularProgressIndicator(Modifier.size(20.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                                } else {
+                                    Icon(Icons.Filled.Save, null, Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Lưu hôm nay")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ═══ History Header ═══
+                if (uiState.history.isNotEmpty()) {
+                    item {
+                        Text("📅 Lịch sử",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+
+                // ═══ History Items ═══
+                items(uiState.history) { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                val formattedDate = try {
+                                    LocalDate.parse(entry.date).format(displayFormatter)
+                                } catch (e: Exception) { entry.date }
+
+                                Text(formattedDate, style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("BMI: ${"%.2f".format(entry.bmi)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Text("${"%.1f".format(entry.weightKg)} kg",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+
+                // ═══ Empty State ═══
+                if (uiState.history.isEmpty()) {
+                    item {
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                            Column(Modifier.fillMaxWidth().padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("📊", style = MaterialTheme.typography.displaySmall)
+                                Spacer(Modifier.height(8.dp))
+                                Text("Chưa có dữ liệu", style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Hãy nhập cân nặng hôm nay để bắt đầu!",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
