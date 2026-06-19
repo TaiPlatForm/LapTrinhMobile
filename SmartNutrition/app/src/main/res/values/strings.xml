@@ -51,6 +51,16 @@
     <string name="dark_mode">Dark Mode</string>
     <string name="language">Language</string>
     <string name="logout">Logout</string>
+    <string name="user_info">User Profile</string>
+    <string name="weight_history">Weight History</string>
+    <string name="daily_calories">Daily Calories</string>
+    <string name="confirm_logout">Are you sure you want to log out of the application?</string>
+    <string name="current_weight_bmi">Current: %1$.1f kg (BMI: %2$.1f)</string>
+    <string name="no_weight_data">No weight log data available</string>
+    <string name="no_meal_data">No AI meal plans generated</string>
+    <string name="calorie_target_label">Target: %1$d kcal/day</string>
+    <string name="range_week">Week</string>
+    <string name="range_month">Month</string>
 
     <!-- ═══ Chung ═══ -->
     <string name="loading">Loading…</string>

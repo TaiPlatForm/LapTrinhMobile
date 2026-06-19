@@ -51,6 +51,16 @@
     <string name="dark_mode">Chế độ tối</string>
     <string name="language">Ngôn ngữ</string>
     <string name="logout">Đăng xuất</string>
+    <string name="user_info">Thông tin người dùng</string>
+    <string name="weight_history">Nhật ký cân nặng</string>
+    <string name="daily_calories">Calo hàng ngày</string>
+    <string name="confirm_logout">Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?</string>
+    <string name="current_weight_bmi">Hiện tại: %1$.1f kg (BMI: %2$.1f)</string>
+    <string name="no_weight_data">Chưa có dữ liệu cân nặng</string>
+    <string name="no_meal_data">Chưa có thực đơn AI</string>
+    <string name="calorie_target_label">Mục tiêu: %1$d kcal/ngày</string>
+    <string name="range_week">Tuần</string>
+    <string name="range_month">Tháng</string>
 
     <!-- ═══ Chung ═══ -->
     <string name="loading">Đang tải…</string>

@@ -10,6 +10,7 @@ import com.team.smartnutrition.meal.model.Meal
 import com.team.smartnutrition.meal.model.MealPlan
 import com.team.smartnutrition.meal.util.WeekUtils
 import com.team.smartnutrition.pantry.data.PantryRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -123,6 +124,8 @@ class MealPlanViewModel : ViewModel() {
                 // 2. Đọc pantry items (có thể trống — không crash)
                 val pantryItems = try {
                     pantryRepository.getAvailableItems(uid)
+                } catch (e: CancellationException) {
+                    throw e // phải re-throw để coroutine cancel đúng
                 } catch (e: Exception) {
                     emptyList() // Pantry lỗi → treat as trống, AI vẫn generate
                 }
@@ -143,15 +146,21 @@ class MealPlanViewModel : ViewModel() {
                         errorMessage = null
                     )
                 }
+            } catch (e: CancellationException) {
+                // Re-throw CancellationException để coroutine framework xử lý đúng
+                // (TimeoutCancellationException cũng là CancellationException)
+                // isGenerating sẽ được reset trong finally
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isGenerating = false,
                         errorMessage = e.message ?: "Lỗi không xác định"
                     )
                 }
             } finally {
+                // ✅ LUÔN reset isGenerating dù thành công, lỗi, hay bị timeout/cancel
                 messageJob.cancel()
+                _uiState.update { it.copy(isGenerating = false) }
             }
         }
     }

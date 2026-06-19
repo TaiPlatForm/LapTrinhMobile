@@ -16,8 +16,10 @@ materialIconsExtended = "1.6.8"
 concurrentFutures = "1.2.0"
 material = "1.12.0"
 guava = "33.2.1-android"
+vico = "2.0.0-beta.3"
 
 [libraries]
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }

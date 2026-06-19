@@ -111,6 +111,11 @@ dependencies {
     implementation(libs.generativeai)
 
     // ═══════════════════════════════════════════
+    // VICO CHARTS (Module 5: Analytics)
+    // ═══════════════════════════════════════════
+    implementation(libs.vico.compose.m3)
+
+    // ═══════════════════════════════════════════
     // UTILITIES (Dùng chung)
     // ═══════════════════════════════════════════
     implementation(libs.gson)

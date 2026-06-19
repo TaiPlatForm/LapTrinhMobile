@@ -14,7 +14,9 @@ import com.team.smartnutrition.meal.model.Meal
 import com.team.smartnutrition.meal.model.MealPlan
 import com.team.smartnutrition.meal.util.WeekUtils
 import com.team.smartnutrition.pantry.model.PantryItem
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 /**
  * ═══════════════════════════════════════════
@@ -34,8 +36,8 @@ class MealGeminiService {
 
     companion object {
         private const val TAG = "MealGeminiService"
-        private const val MODEL_NAME = "gemini-2.5-flash"
-        private const val TIMEOUT_MS = 60_000L  // 60s cho response lớn
+        private const val MODEL_NAME = "gemini-1.5-flash"  // Nhanh hơn, tốt cho JSON cấu trúc
+        private const val TIMEOUT_MS = 90_000L  // 90s để an toàn
 
         /** System prompt tiếng Việt - ép AI trả JSON chuẩn */
         private const val SYSTEM_PROMPT = """
@@ -98,15 +100,26 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
     ): MealPlan {
         val userPrompt = buildUserPrompt(user, pantryItems)
 
-        // Gọi Gemini với timeout 60s
-        val response = withTimeoutOrNull(TIMEOUT_MS) {
-            model.generateContent(
-                content {
-                    text(SYSTEM_PROMPT)
-                    text(userPrompt)
-                }
-            )
-        } ?: throw Exception("Timeout khi gọi AI lên thực đơn (quá 60 giây)")
+        val response = try {
+            // Dùng withTimeout — khi timeout sẽ ném TimeoutCancellationException
+            // (extends CancellationException) được ViewModel bắt riêng
+            withTimeout(TIMEOUT_MS) {
+                model.generateContent(
+                    content {
+                        text(SYSTEM_PROMPT)
+                        text(userPrompt)
+                    }
+                )
+            }
+        } catch (e: TimeoutCancellationException) {
+            Log.e(TAG, "Gemini timeout after ${TIMEOUT_MS}ms")
+            throw Exception("AI mất quá nhiều thời gian. Kiểm tra mạng và thử lại.")
+        } catch (e: CancellationException) {
+            throw e // Không dước nút hạt CancellationException của coroutine
+        } catch (e: Exception) {
+            Log.e(TAG, "Gemini API error", e)
+            throw Exception("Lỗi kết nối AI: ${e.message ?: "Không xác định"}. Thử lại.")
+        }
 
         val responseText = response.text
             ?: throw Exception("AI không trả về kết quả")
@@ -114,7 +127,6 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
         Log.d(TAG, "Gemini response length: ${responseText.length}")
         Log.d(TAG, "Gemini response preview: ${responseText.take(300)}")
 
-        // Parse + validate
         return parseAndValidate(responseText, user.calorieTarget)
     }
 
