@@ -109,4 +109,6 @@ dependencies {
     // ═══════════════════════════════════════════
     implementation(libs.gson)
     implementation(libs.coil.compose)
+    implementation(libs.concurrent.futures.ktx)
+    implementation(libs.guava)
 }
