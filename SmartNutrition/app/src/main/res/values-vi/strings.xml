@@ -165,15 +165,18 @@
     <!-- ═══ Meal Planner ═══ -->
     <string name="loading_meal_plan">Đang tải thực đơn…</string>
     <string name="no_meal_plan">Chưa có thực đơn</string>
-    <string name="meal_plan_hint">Để AI gợi ý thực đơn 7 ngày\ndựa trên kho thực phẩm và chỉ số dinh dưỡng của bạn</string>
+    <string name="meal_plan_hint">Để AI gợi ý thực đơn\ndựa trên kho thực phẩm và chỉ số dinh dưỡng của bạn</string>
     <string name="generate_meal_plan_btn">Lên thực đơn bằng AI</string>
-    <string name="regenerate_meal_plan_btn">Đổi thực đơn tuần mới</string>
-    <string name="ai_generating_desc">Quá trình này mất khoảng 10-15 giây</string>
+    <string name="regenerate_meal_plan_btn">Tạo lại thực đơn ngày này</string>
+    <string name="ai_generating_desc">Quá trình này mất khoảng 3-5 giây</string>
     <string name="ai_detail_loading">AI đang thiết lập công thức &amp; nguyên liệu…</string>
     <string name="detail_error_title">Lỗi tải công thức</string>
     <string name="no_meal_info">Không tìm thấy thông tin bữa ăn.</string>
     <string name="ingredients_section">Nguyên liệu</string>
     <string name="recipe_section">Cách nấu</string>
+    <string name="daily_plan_empty_title">Thực đơn ngày này chưa được tạo</string>
+    <string name="daily_plan_empty_desc">Hãy để AI gợi ý món ăn dinh dưỡng phù hợp cho bạn trong vài giây.</string>
+    <string name="generate_daily_plan_btn">Tạo thực đơn ngày này</string>
 
     <!-- ═══ Habits ═══ -->
     <string name="decrease_cup">Giảm 1 cốc</string>

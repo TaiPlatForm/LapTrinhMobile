@@ -85,6 +85,40 @@ TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap 
 }
 
 QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
+
+        /** System prompt tiếng Việt - ép AI trả JSON cho 1 ngày duy nhất */
+        private const val DAILY_SYSTEM_PROMPT = """
+Bạn là chuyên gia dinh dưỡng Việt Nam. Lên thực đơn cho 1 ngày duy nhất, gồm 3 bữa (breakfast, lunch, dinner).
+
+PHONG CÁCH: Món ăn gia đình Việt Nam, dễ nấu, lành mạnh.
+
+QUY TẮC:
+- Ưu tiên sử dụng nguyên liệu từ danh sách "Kho thực phẩm" bên dưới (nếu có)
+- Tổng calo cả ngày bám sát mục tiêu được cung cấp (±10%)
+- Chỉ trả về tên món ăn, lượng calo, lượng protein (KHÔNG kèm nguyên liệu và công thức nấu)
+
+TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap trong markdown:
+{
+  "meals": {
+    "breakfast": {
+      "name": "tên món ăn sáng bằng tiếng Việt",
+      "totalCalories": 450,
+      "totalProtein": 25
+    },
+    "lunch": {
+      "name": "tên món ăn trưa bằng tiếng Việt",
+      "totalCalories": 700,
+      "totalProtein": 35
+    },
+    "dinner": {
+      "name": "tên món ăn tối bằng tiếng Việt",
+      "totalCalories": 650,
+      "totalProtein": 30
+    }
+  }
+}
+
+QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
     }
 
     // Lazy init cho model tạo thực đơn tuần
@@ -112,6 +146,20 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
                 responseMimeType = "application/json"
             },
             systemInstruction = content { text(DETAIL_SYSTEM_PROMPT) }
+        )
+    }
+
+    // Lazy init cho model tạo thực đơn ngày
+    private val dailyModel: GenerativeModel by lazy {
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        if (apiKey.isBlank()) throw apiKeyException()
+        GenerativeModel(
+            modelName = MODEL_NAME,
+            apiKey = apiKey,
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+            },
+            systemInstruction = content { text(DAILY_SYSTEM_PROMPT) }
         )
     }
 
@@ -160,6 +208,42 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
         Log.d(TAG, "Gemini response preview: ${responseText.take(300)}")
 
         return parseAndValidate(responseText, user.calorieTarget)
+    }
+
+    /**
+     * Gọi Gemini để generate thực đơn cho 1 ngày duy nhất.
+     * @throws Exception nếu timeout, parse fail, hoặc validation fail
+     */
+    suspend fun generateDailyMealPlan(
+        user: User,
+        pantryItems: List<PantryItem>,
+        dayLabel: String
+    ): DayPlan {
+        val userPrompt = buildDailyUserPrompt(user, pantryItems, dayLabel)
+
+        val response = try {
+            withTimeout(30000L) { // 30s cho 1 ngày
+                dailyModel.generateContent(
+                    content {
+                        text(userPrompt)
+                    }
+                )
+            }
+        } catch (e: TimeoutCancellationException) {
+            Log.e(TAG, "Gemini daily timeout after 30s")
+            throw Exception("AI mất quá nhiều thời gian. Kiểm tra mạng và thử lại.")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Gemini daily API error", e)
+            throw Exception("Lỗi kết nối AI: ${e.message ?: "Không xác định"}. Thử lại.")
+        }
+
+        val responseText = response.text
+            ?: throw Exception("AI không trả về thực đơn ngày")
+
+        Log.d(TAG, "Gemini daily response preview: ${responseText.take(300)}")
+        return parseAndValidateDaily(responseText, dayLabel)
     }
 
     /**
@@ -254,6 +338,45 @@ $pantrySection
 Hãy lên thực đơn 7 ngày theo đúng format JSON đã hướng dẫn."""
     }
 
+    /**
+     * Tạo prompt cho thực đơn 1 ngày từ profile + pantry items.
+     */
+    private fun buildDailyUserPrompt(
+        user: User,
+        pantryItems: List<PantryItem>,
+        dayLabel: String
+    ): String {
+        val goalVi = when (user.goal) {
+            "lose_weight" -> "Giảm cân"
+            "gain_muscle" -> "Tăng cơ"
+            else -> "Duy trì cân nặng"
+        }
+
+        val pantrySection = if (pantryItems.isEmpty()) {
+            "KHO THỰC PHẨM: Đang trống — hãy gợi ý thực đơn tự do bám sát chỉ số calo mục tiêu."
+        } else {
+            val itemsList = pantryItems.joinToString("\n") { item ->
+                "- ${item.name}: ${item.caloriesPer100g} kcal/100g, " +
+                "${item.proteinPer100g}g protein/100g, " +
+                "còn ${item.quantityGrams}${item.unit}, " +
+                "trạng thái: ${item.status}"
+            }
+            "KHO THỰC PHẨM HIỆN CÓ (ưu tiên sử dụng, đặc biệt items sắp hết hạn):\n$itemsList"
+        }
+
+        return """
+THÔNG TIN NGƯỜI DÙNG:
+- Mục tiêu: $goalVi
+- Calo mục tiêu: ${user.calorieTarget} kcal/ngày
+- Protein mục tiêu: ${user.proteinTarget}g/ngày
+- Carb mục tiêu: ${user.carbTarget}g/ngày
+- Fat mục tiêu: ${user.fatTarget}g/ngày
+
+$pantrySection
+
+Hãy lên thực đơn cho ngày: "$dayLabel" theo đúng format JSON đã hướng dẫn."""
+    }
+
     // ═══════════════════════════════════════════════════
     // PRIVATE: JSON PARSE (4 tầng phòng thủ)
     // ═══════════════════════════════════════════════════
@@ -277,6 +400,57 @@ Hãy lên thực đơn 7 ngày theo đúng format JSON đã hướng dẫn."""
         val name: String = "",
         val amount: String = ""
     )
+
+    private data class GeminiDailyResponse(
+        val meals: Map<String, GeminiMealItem> = emptyMap()
+    )
+
+    /**
+     * Parse + validate Gemini daily response → DayPlan.
+     */
+    private fun parseAndValidateDaily(responseText: String, dayLabel: String): DayPlan {
+        val jsonString = stripMarkdownWrapper(responseText)
+        val geminiResponse = try {
+            Gson().fromJson(jsonString, GeminiDailyResponse::class.java)
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Daily JSON parse fail: ${jsonString.take(300)}", e)
+            throw Exception("AI trả kết quả không đúng format cho thực đơn ngày. Vui lòng thử lại.")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected daily parse error", e)
+            throw Exception("Lỗi xử lý kết quả từ AI. Vui lòng thử lại.")
+        }
+
+        if (geminiResponse.meals.isEmpty()) {
+            throw Exception("AI không trả về thực đơn cho ngày. Vui lòng thử lại.")
+        }
+        if (geminiResponse.meals.size < 3) {
+            throw Exception("Thực đơn ngày thiếu bữa ăn. Thử lại.")
+        }
+        geminiResponse.meals.values.forEach { meal ->
+            if (meal.name.isBlank()) {
+                throw Exception("Có bữa ăn thiếu tên món. Thử lại.")
+            }
+        }
+
+        val meals = geminiResponse.meals.mapValues { (_, mealResp) ->
+            Meal(
+                name = mealResp.name,
+                totalCalories = mealResp.totalCalories,
+                totalProtein = mealResp.totalProtein,
+                ingredients = emptyList(),
+                recipe = ""
+            )
+        }
+        val dayCalories = meals.values.sumOf { it.totalCalories }
+        val dayProtein = meals.values.sumOf { it.totalProtein }
+
+        return DayPlan(
+            dayLabel = dayLabel,
+            meals = meals,
+            totalCalories = dayCalories,
+            totalProtein = dayProtein
+        )
+    }
 
     /**
      * Parse + validate Gemini response → MealPlan.

@@ -165,15 +165,18 @@
     <!-- ═══ Meal Planner ═══ -->
     <string name="loading_meal_plan">Loading meal plan…</string>
     <string name="no_meal_plan">No meal plan generated</string>
-    <string name="meal_plan_hint">Let AI suggest a 7-day meal plan\nbased on your pantry items and metrics</string>
+    <string name="meal_plan_hint">Let AI suggest a meal plan\nbased on your pantry items and metrics</string>
     <string name="generate_meal_plan_btn">Generate Meal Plan with AI</string>
-    <string name="regenerate_meal_plan_btn">Change to New Week Plan</string>
-    <string name="ai_generating_desc">This process takes about 10-15 seconds</string>
+    <string name="regenerate_meal_plan_btn">Regenerate current day meals</string>
+    <string name="ai_generating_desc">This process takes about 3-5 seconds</string>
     <string name="ai_detail_loading">AI is setting up recipe &amp; ingredients…</string>
     <string name="detail_error_title">Error loading recipe</string>
     <string name="no_meal_info">Meal information not found.</string>
     <string name="ingredients_section">Ingredients</string>
     <string name="recipe_section">Recipe</string>
+    <string name="daily_plan_empty_title">No meal plan for this day yet</string>
+    <string name="daily_plan_empty_desc">Let AI recommend a nutritious meal plan for you in seconds.</string>
+    <string name="generate_daily_plan_btn">Generate plan for this day</string>
 
     <!-- ═══ Habits ═══ -->
     <string name="decrease_cup">Decrease 1 cup</string>

@@ -66,7 +66,8 @@ fun MealPlanWeekScreen(
                 onMealClick = { dayIndex, mealType ->
                     navController.navigate(Screen.MealDetail.createRoute(dayIndex, mealType))
                 },
-                onRegenerateClick = { viewModel.generateMealPlan() }
+                onRegenerateClick = { viewModel.generateMealPlan() },
+                onGenerateDayClick = { dayIndex -> viewModel.generateMealPlanForDay(dayIndex) }
             )
         }
 
@@ -140,18 +141,23 @@ private fun MealPlanContent(
     uiState: MealPlanUiState,
     onDaySelected: (Int) -> Unit,
     onMealClick: (dayIndex: Int, mealType: String) -> Unit,
-    onRegenerateClick: () -> Unit
+    onRegenerateClick: () -> Unit,
+    onGenerateDayClick: (Int) -> Unit
 ) {
     val plan = uiState.mealPlan ?: return
     val selectedDay = plan.days.getOrNull(uiState.selectedDayIndex) ?: return
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Nút regenerate
-        GradientButton(
-            text = stringResource(R.string.regenerate_meal_plan_btn),
-            onClick = onRegenerateClick,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        // Chỉ hiện nút regenerate khi ngày hiện tại đã có thực đơn
+        if (selectedDay.meals.isNotEmpty()) {
+            GradientButton(
+                text = stringResource(R.string.regenerate_meal_plan_btn),
+                onClick = onRegenerateClick,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        } else {
+            Spacer(Modifier.height(8.dp))
+        }
 
         // Tab row chọn ngày (7 tab rút gọn)
         DayTabRow(
@@ -167,24 +173,67 @@ private fun MealPlanContent(
             protein = selectedDay.totalProtein
         )
 
-        // 3 meal cards (Sáng / Trưa / Tối)
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(WeekUtils.mealTypeOrder) { mealType ->
-                val meal = selectedDay.meals[mealType]
-                if (meal != null) {
-                    MealCard(
-                        mealType = mealType,
-                        meal = meal,
-                        onClick = { onMealClick(uiState.selectedDayIndex, mealType) }
+        if (selectedDay.meals.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.daily_plan_empty_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.daily_plan_empty_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Button(
+                        onClick = { onGenerateDayClick(uiState.selectedDayIndex) }
+                    ) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.generate_daily_plan_btn))
+                    }
                 }
             }
-            // Bottom spacing
-            item { Spacer(Modifier.height(16.dp)) }
+        } else {
+            // 3 meal cards (Sáng / Trưa / Tối)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(WeekUtils.mealTypeOrder) { mealType ->
+                    val meal = selectedDay.meals[mealType]
+                    if (meal != null) {
+                        MealCard(
+                            mealType = mealType,
+                            meal = meal,
+                            onClick = { onMealClick(uiState.selectedDayIndex, mealType) }
+                        )
+                    }
+                }
+                // Bottom spacing
+                item { Spacer(Modifier.height(16.dp)) }
+            }
         }
     }
 }

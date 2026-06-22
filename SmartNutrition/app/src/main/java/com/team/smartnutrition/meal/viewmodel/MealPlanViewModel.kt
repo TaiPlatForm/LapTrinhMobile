@@ -82,30 +82,89 @@ class MealPlanViewModel : ViewModel() {
     // ═══════════════════════════════════════════════════
 
     /**
-     * Gọi Gemini generate thực đơn tuần mới.
-     * Flow: đọc user profile + pantry → build prompt → gọi AI → save Firestore → update UI
+     * Khởi tạo hoặc tạo lại thực đơn cho ngày hiện tại đang chọn.
+     * Nếu chưa có MealPlan (null) -> khởi tạo khung 7 ngày và tạo thực đơn cho ngày hôm nay.
+     * Nếu đã có MealPlan -> tạo lại thực đơn cho ngày đang được chọn (selectedDayIndex).
      */
     fun generateMealPlan() {
+        val currentPlan = _uiState.value.mealPlan
+        if (currentPlan == null) {
+            initWeeklyMealPlanSkeleton()
+        } else {
+            generateMealPlanForDay(_uiState.value.selectedDayIndex)
+        }
+    }
+
+    /**
+     * Khởi tạo khung thực đơn 7 ngày trống (Thứ 2 -> Chủ Nhật).
+     * Tự động chọn ngày hôm nay trong tuần và gọi AI tạo thực đơn cho ngày đó.
+     */
+    private fun initWeeklyMealPlanSkeleton() {
         val uid = mealRepository.currentUid ?: return
+        val weekId = WeekUtils.getCurrentWeekId()
+
+        // Lấy ngày hiện tại trong tuần (1 = Thứ 2, 7 = Chủ Nhật)
+        val today = java.time.LocalDate.now().dayOfWeek.value
+        val todayIndex = (today - 1).coerceIn(0, 6)
+
+        val emptyDays = WeekUtils.dayLabels.map { label ->
+            DayPlan(dayLabel = label, meals = emptyMap())
+        }
+
+        val newPlan = MealPlan(
+            weekId = weekId,
+            days = emptyDays,
+            calorieTarget = 2000,
+            createdAt = com.google.firebase.Timestamp.now()
+        )
+
+        _uiState.update {
+            it.copy(
+                mealPlan = newPlan,
+                selectedDayIndex = todayIndex,
+                errorMessage = null
+            )
+        }
+
+        // Lưu skeleton vào local cache & Firestore
+        mealRepository.saveMealPlan(uid, newPlan)
+
+        // Gọi AI sinh thực đơn cho ngày hôm nay
+        generateMealPlanForDay(todayIndex)
+    }
+
+    /**
+     * Gọi Gemini AI để sinh thực đơn cho một ngày cụ thể (dayIndex từ 0 đến 6).
+     */
+    fun generateMealPlanForDay(dayIndex: Int) {
+        val uid = mealRepository.currentUid ?: return
+        val currentPlan = _uiState.value.mealPlan ?: return
+        val dayLabel = WeekUtils.dayLabels.getOrNull(dayIndex) ?: return
 
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isGenerating = true,
-                    loadingMessage = loadingMessages[0],
+                    loadingMessage = "🤖 AI đang thiết lập thực đơn cho $dayLabel...",
                     errorMessage = null
                 )
             }
 
-            // Xoay vòng loading messages mỗi 2.5s để UX vui vẻ
+            // Xoay vòng loading messages mỗi 2.5s để UX sinh động
             val messageJob = launch {
-                var index = 1
+                val dailyLoadingMessages = listOf(
+                    "🤖 AI đang phân tích thể trạng của bạn...",
+                    "🥗 Đang tìm món ăn phù hợp cho $dayLabel...",
+                    "📊 Đang cân đối calo và protein...",
+                    "🍲 Sắp xong rồi, chờ chút nhé..."
+                )
+                var msgIdx = 1
                 while (true) {
                     delay(2500)
                     _uiState.update {
-                        it.copy(loadingMessage = loadingMessages[index % loadingMessages.size])
+                        it.copy(loadingMessage = dailyLoadingMessages[msgIdx % dailyLoadingMessages.size])
                     }
-                    index++
+                    msgIdx++
                 }
             }
 
@@ -128,29 +187,43 @@ class MealPlanViewModel : ViewModel() {
                 val pantryItems = try {
                     pantryRepository.getAvailableItems(uid)
                 } catch (e: CancellationException) {
-                    throw e // phải re-throw để coroutine cancel đúng
+                    throw e
                 } catch (e: Exception) {
-                    emptyList() // Pantry lỗi → treat as trống, AI vẫn generate
+                    emptyList()
                 }
 
-                // 3. Gọi Gemini AI
-                val mealPlan = mealGeminiService.generateMealPlan(safeUser, pantryItems)
+                // 3. Gọi Gemini AI sinh thực đơn 1 ngày
+                val generatedDayPlan = mealGeminiService.generateDailyMealPlan(safeUser, pantryItems, dayLabel)
 
-                // 4. Lưu plan mới (fire-and-forget, set() sẽ tự động ghi đè bản ghi cũ nếu trùng ID)
-                mealRepository.saveMealPlan(uid, mealPlan)
+                // 4. Cập nhật vào MealPlan hiện tại
+                val updatedDays = currentPlan.days.toMutableList()
+                if (dayIndex in updatedDays.indices) {
+                    updatedDays[dayIndex] = generatedDayPlan
+                } else {
+                    while (updatedDays.size <= dayIndex) {
+                        updatedDays.add(DayPlan(dayLabel = WeekUtils.dayLabels[updatedDays.size]))
+                    }
+                    updatedDays[dayIndex] = generatedDayPlan
+                }
+
+                // Cập nhật calorieTarget thực tế từ profile của user
+                val updatedPlan = currentPlan.copy(
+                    days = updatedDays,
+                    calorieTarget = safeUser.calorieTarget,
+                    totalCalories = updatedDays.sumOf { it.totalCalories }
+                )
+
+                // 5. Lưu plan mới
+                mealRepository.saveMealPlan(uid, updatedPlan)
 
                 _uiState.update {
                     it.copy(
-                        mealPlan = mealPlan,
-                        selectedDayIndex = 0,
+                        mealPlan = updatedPlan,
                         isGenerating = false,
                         errorMessage = null
                     )
                 }
             } catch (e: CancellationException) {
-                // Re-throw CancellationException để coroutine framework xử lý đúng
-                // (TimeoutCancellationException cũng là CancellationException)
-                // isGenerating sẽ được reset trong finally
                 throw e
             } catch (e: Exception) {
                 _uiState.update {
@@ -159,7 +232,6 @@ class MealPlanViewModel : ViewModel() {
                     )
                 }
             } finally {
-                // ✅ LUÔN reset isGenerating dù thành công, lỗi, hay bị timeout/cancel
                 messageJob.cancel()
                 _uiState.update { it.copy(isGenerating = false) }
             }
