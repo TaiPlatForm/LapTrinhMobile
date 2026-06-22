@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Kitchen
 import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.team.smartnutrition.R
 
 /**
  * ═══════════════════════════════════════════
@@ -64,7 +65,7 @@ sealed class Screen(val route: String) {
  */
 data class BottomNavItem(
     val route: String,
-    val label: String,
+    val labelResId: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 )
@@ -75,31 +76,31 @@ data class BottomNavItem(
 val bottomNavItems = listOf(
     BottomNavItem(
         route = Screen.Home.route,
-        label = "Trang chủ",
+        labelResId = R.string.nav_home,
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home
     ),
     BottomNavItem(
         route = Screen.Pantry.route,
-        label = "Kho TP",
+        labelResId = R.string.nav_pantry,
         selectedIcon = Icons.Filled.Kitchen,
         unselectedIcon = Icons.Outlined.Kitchen
     ),
     BottomNavItem(
         route = Screen.MealPlan.route,
-        label = "Thực đơn",
+        labelResId = R.string.nav_meal,
         selectedIcon = Icons.Filled.RestaurantMenu,
         unselectedIcon = Icons.Outlined.RestaurantMenu
     ),
     BottomNavItem(
         route = Screen.Habit.route,
-        label = "Thói quen",
+        labelResId = R.string.nav_habit,
         selectedIcon = Icons.Filled.WaterDrop,
         unselectedIcon = Icons.Outlined.WaterDrop
     ),
     BottomNavItem(
         route = Screen.Analytics.route,
-        label = "Thống kê",
+        labelResId = R.string.nav_analytics,
         selectedIcon = Icons.Filled.BarChart,
         unselectedIcon = Icons.Outlined.BarChart
     )

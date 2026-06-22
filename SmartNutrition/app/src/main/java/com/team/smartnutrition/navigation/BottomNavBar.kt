@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+import androidx.compose.ui.res.stringResource
+
 /**
  * Bottom Navigation Bar với 5 tabs.
  * File này KHÔNG CẦN SỬA.
@@ -45,12 +47,12 @@ fun BottomNavBar(
                 icon = {
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                        contentDescription = item.label
+                        contentDescription = stringResource(item.labelResId)
                     )
                 },
                 label = {
                     Text(
-                        text = item.label,
+                        text = stringResource(item.labelResId),
                         style = MaterialTheme.typography.labelSmall
                     )
                 },
