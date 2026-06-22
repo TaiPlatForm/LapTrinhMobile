@@ -3,6 +3,7 @@ package com.team.smartnutrition.meal.data
 import android.util.Log
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.google.ai.client.generativeai.type.generationConfig
 import com.google.firebase.Timestamp
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -70,19 +71,54 @@ TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap 
 }
 
 QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
+
+        /** System prompt cho chi tiết nguyên liệu + cách nấu */
+        private const val DETAIL_SYSTEM_PROMPT = """
+Bạn là chuyên gia dinh dưỡng Việt Nam. Nhiệm vụ của bạn là cung cấp danh sách nguyên liệu chi tiết (kèm định lượng) và các bước thực hiện chi tiết cho món ăn được yêu cầu.
+
+TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap trong markdown:
+{
+  "ingredients": [
+    {"name": "tên nguyên liệu", "amount": "định lượng (ví dụ: 100g, 2 quả, 1 thìa cà phê)"}
+  ],
+  "recipe": "1. Bước 1...\n2. Bước 2...\n3. Bước 3..."
+}
+
+QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
     }
 
-    // Lazy init để throw rõ ràng nếu API key trống
-    private val model: GenerativeModel by lazy {
+    // Lazy init cho model tạo thực đơn tuần
+    private val weeklyModel: GenerativeModel by lazy {
         val apiKey = BuildConfig.GEMINI_API_KEY
-        if (apiKey.isBlank()) {
-            throw IllegalStateException(
-                "GEMINI_API_KEY chưa được cấu hình. " +
-                "Thêm dòng GEMINI_API_KEY=your_key vào file local.properties"
-            )
-        }
-        GenerativeModel(modelName = MODEL_NAME, apiKey = apiKey)
+        if (apiKey.isBlank()) throw apiKeyException()
+        GenerativeModel(
+            modelName = MODEL_NAME,
+            apiKey = apiKey,
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+            },
+            systemInstruction = content { text(SYSTEM_PROMPT) }
+        )
     }
+
+    // Lazy init cho model tạo chi tiết món ăn
+    private val detailModel: GenerativeModel by lazy {
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        if (apiKey.isBlank()) throw apiKeyException()
+        GenerativeModel(
+            modelName = MODEL_NAME,
+            apiKey = apiKey,
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+            },
+            systemInstruction = content { text(DETAIL_SYSTEM_PROMPT) }
+        )
+    }
+
+    private fun apiKeyException() = IllegalStateException(
+        "GEMINI_API_KEY chưa được cấu hình. " +
+        "Thêm dòng GEMINI_API_KEY=your_key vào file local.properties"
+    )
 
     // ═══════════════════════════════════════════════════
     // PUBLIC API
@@ -100,11 +136,9 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
 
         val response = try {
             // Dùng withTimeout — khi timeout sẽ ném TimeoutCancellationException
-            // (extends CancellationException) được ViewModel bắt riêng
             withTimeout(TIMEOUT_MS) {
-                model.generateContent(
+                weeklyModel.generateContent(
                     content {
-                        text(SYSTEM_PROMPT)
                         text(userPrompt)
                     }
                 )
@@ -113,7 +147,7 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
             Log.e(TAG, "Gemini timeout after ${TIMEOUT_MS}ms")
             throw Exception("AI mất quá nhiều thời gian. Kiểm tra mạng và thử lại.")
         } catch (e: CancellationException) {
-            throw e // Không dước nút hạt CancellationException của coroutine
+            throw e // Không được nuốt CancellationException của coroutine
         } catch (e: Exception) {
             Log.e(TAG, "Gemini API error", e)
             throw Exception("Lỗi kết nối AI: ${e.message ?: "Không xác định"}. Thử lại.")
@@ -137,24 +171,15 @@ QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải
         calorieTarget: Int
     ): MealDetailResult {
         val prompt = """
-Bạn là chuyên gia dinh dưỡng Việt Nam. Cung cấp danh sách nguyên liệu và công thức nấu ăn chi tiết cho món ăn sau: "$mealName".
-Thông tin người dùng:
-- Mục tiêu sức khỏe: $userGoal
-- Lượng Calo ước tính của bữa này: $calorieTarget kcal
-
-TRẢ VỀ ĐÚNG JSON theo format sau, KHÔNG giải thích thêm, KHÔNG wrap trong markdown:
-{
-  "ingredients": [
-    {"name": "tên nguyên liệu 1", "amount": "định lượng (ví dụ: 100g, 2 quả, 1 thìa cà phê)"}
-  ],
-  "recipe": "1. Bước 1...\n2. Bước 2...\n3. Bước 3..."
-}
-
-QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG wrap trong ```json, KHÔNG giải thích."""
+Hãy sinh danh sách nguyên liệu và công thức nấu ăn cho:
+- Món ăn: "$mealName"
+- Lượng Calo mục tiêu: $calorieTarget kcal
+- Mục tiêu sức khỏe của người dùng: $userGoal
+"""
 
         val response = try {
             withTimeout(45000L) { // 45s cho 1 món là dư dả
-                model.generateContent(prompt)
+                detailModel.generateContent(prompt)
             }
         } catch (e: TimeoutCancellationException) {
             Log.e(TAG, "Gemini detail timeout after 45s")

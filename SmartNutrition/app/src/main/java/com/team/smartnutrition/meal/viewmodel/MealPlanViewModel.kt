@@ -136,9 +136,7 @@ class MealPlanViewModel : ViewModel() {
                 // 3. Gọi Gemini AI
                 val mealPlan = mealGeminiService.generateMealPlan(safeUser, pantryItems)
 
-                // 4. Xóa plan cũ tuần này (nếu có) → lưu plan mới (fire-and-forget)
-                val weekId = WeekUtils.getCurrentWeekId()
-                mealRepository.deleteMealPlan(uid, weekId)
+                // 4. Lưu plan mới (fire-and-forget, set() sẽ tự động ghi đè bản ghi cũ nếu trùng ID)
                 mealRepository.saveMealPlan(uid, mealPlan)
 
                 _uiState.update {

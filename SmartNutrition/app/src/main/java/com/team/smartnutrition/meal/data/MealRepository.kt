@@ -60,12 +60,16 @@ class MealRepository {
                 mealPlansRef(uid).document(weekId).get().await()
             }
         } catch (e: Exception) {
-            // Fallback đọc từ cache local (offline)
-            mealPlansRef(uid).document(weekId)
-                .get(com.google.firebase.firestore.Source.CACHE).await()
+            try {
+                // Fallback đọc từ cache local (offline)
+                mealPlansRef(uid).document(weekId)
+                    .get(com.google.firebase.firestore.Source.CACHE).await()
+            } catch (cacheEx: Exception) {
+                null // Nếu cache cũng lỗi (không có trong cache), trả về null thay vì ném lỗi
+            }
         }
 
-        if (!doc.exists()) return null
+        if (doc == null || !doc.exists()) return null
         return docToMealPlan(doc)
     }
 
@@ -84,14 +88,19 @@ class MealRepository {
                     .await()
             }
         } catch (e: Exception) {
-            // Fallback đọc từ cache local
-            mealPlansRef(uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(1)
-                .get(com.google.firebase.firestore.Source.CACHE)
-                .await()
+            try {
+                // Fallback đọc từ cache local
+                mealPlansRef(uid)
+                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .limit(1)
+                    .get(com.google.firebase.firestore.Source.CACHE)
+                    .await()
+            } catch (cacheEx: Exception) {
+                null
+            }
         }
 
+        if (snapshot == null) return null
         val doc = snapshot.documents.firstOrNull() ?: return null
         return docToMealPlan(doc)
     }
