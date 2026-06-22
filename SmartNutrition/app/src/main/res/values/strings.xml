@@ -177,6 +177,7 @@
     <string name="daily_plan_empty_title">No meal plan for this day yet</string>
     <string name="daily_plan_empty_desc">Let AI recommend a nutritious meal plan for you in seconds.</string>
     <string name="generate_daily_plan_btn">Generate plan for this day</string>
+    <string name="swap_meal_desc">Swap this meal</string>
 
     <!-- ═══ Habits ═══ -->
     <string name="decrease_cup">Decrease 1 cup</string>

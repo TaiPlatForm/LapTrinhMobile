@@ -23,6 +23,10 @@ import com.team.smartnutrition.meal.model.Ingredient
 import com.team.smartnutrition.meal.model.Meal
 import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextAlign
 
 /**
  * ═══════════════════════════════════════════
@@ -88,82 +92,98 @@ fun MealDetailScreen(
         viewModel.loadMealDetail(dayIndex, mealType)
     }
 
-    Scaffold(
-        topBar = {
-            SmartTopBar(
-                title = "$mealLabel — $dayLabel",
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-    ) { padding ->
-        when {
-            uiState.isGeneratingDetail -> {
-                // Đang gọi AI sinh chi tiết công thức
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(modifier = Modifier.size(44.dp))
-                        Spacer(Modifier.height(16.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                SmartTopBar(
+                    title = "$mealLabel — $dayLabel",
+                    onBackClick = { navController.popBackStack() },
+                    actions = {
+                        if (meal != null) {
+                            IconButton(onClick = { viewModel.changeSpecificMeal(dayIndex, mealType) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = stringResource(R.string.swap_meal_desc)
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            when {
+                uiState.isGeneratingDetail -> {
+                    // Đang gọi AI sinh chi tiết công thức
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(modifier = Modifier.size(44.dp))
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.ai_detail_loading),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                uiState.detailErrorMessage != null -> {
+                    // Lỗi khi tải chi tiết
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = uiState.detailErrorMessage ?: stringResource(R.string.detail_error_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            Button(
+                                onClick = { viewModel.loadMealDetail(dayIndex, mealType) }
+                            ) {
+                                Text(stringResource(R.string.retry))
+                            }
+                        }
+                    }
+                }
+                meal == null -> {
+                    // Fallback khi không tìm thấy thông tin bữa ăn
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = stringResource(R.string.ai_detail_loading),
+                            text = stringResource(R.string.no_meal_info),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            }
-            uiState.detailErrorMessage != null -> {
-                // Lỗi khi tải chi tiết
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = uiState.detailErrorMessage ?: stringResource(R.string.detail_error_title),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.loadMealDetail(dayIndex, mealType) }
-                        ) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
-                }
-            }
-            meal == null -> {
-                // Fallback khi không tìm thấy thông tin bữa ăn
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.no_meal_info),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                else -> {
+                    // Thành công -> hiển thị giao diện
+                    MealDetailContent(
+                        meal = meal,
+                        modifier = Modifier.padding(padding)
                     )
                 }
             }
-            else -> {
-                // Thành công -> hiển thị giao diện
-                MealDetailContent(
-                    meal = meal,
-                    modifier = Modifier.padding(padding)
-                )
-            }
+        }
+
+        if (uiState.isGenerating) {
+            GeneratingDialog(message = uiState.loadingMessage)
         }
     }
 }
@@ -284,5 +304,47 @@ private fun IngredientRow(ingredient: Ingredient) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
+    }
+}
+
+@Composable
+private fun GeneratingDialog(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp),
+                    strokeWidth = 4.dp
+                )
+                Spacer(Modifier.height(20.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.ai_generating_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

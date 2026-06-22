@@ -177,6 +177,7 @@
     <string name="daily_plan_empty_title">Thực đơn ngày này chưa được tạo</string>
     <string name="daily_plan_empty_desc">Hãy để AI gợi ý món ăn dinh dưỡng phù hợp cho bạn trong vài giây.</string>
     <string name="generate_daily_plan_btn">Tạo thực đơn ngày này</string>
+    <string name="swap_meal_desc">Đổi món ăn này</string>
 
     <!-- ═══ Habits ═══ -->
     <string name="decrease_cup">Giảm 1 cốc</string>

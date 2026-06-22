@@ -295,6 +295,97 @@ Hãy sinh danh sách nguyên liệu và công thức nấu ăn cho:
         val amount: String = ""
     )
 
+    /**
+     * Gọi Gemini để đổi món ăn cho 1 bữa cụ thể.
+     */
+    suspend fun generateSingleMealReplacement(
+        user: User,
+        pantryItems: List<PantryItem>,
+        dayLabel: String,
+        mealType: String,
+        currentMealName: String
+    ): Meal {
+        val goalVi = when (user.goal) {
+            "lose_weight" -> "Giảm cân"
+            "gain_muscle" -> "Tăng cơ"
+            else -> "Duy trì cân nặng"
+        }
+
+        val mealTypeVi = when (mealType.lowercase()) {
+            "breakfast" -> "Bữa sáng"
+            "lunch" -> "Bữa trưa"
+            "dinner" -> "Bữa tối"
+            else -> mealType
+        }
+
+        val pantrySection = if (pantryItems.isEmpty()) {
+            "KHO THỰC PHẨM: Đang trống — hãy gợi ý thực đơn tự do bám sát chỉ số calo mục tiêu."
+        } else {
+            val itemsList = pantryItems.joinToString("\n") { item ->
+                "- ${item.name}: ${item.caloriesPer100g} kcal/100g, " +
+                "${item.proteinPer100g}g protein/100g"
+            }
+            "KHO THỰC PHẨM HIỆN CÓ (ưu tiên sử dụng):\n$itemsList"
+        }
+
+        val prompt = """
+Bạn là chuyên gia dinh dưỡng Việt Nam.
+Hãy gợi ý một món ăn THAY THẾ cho món ăn hiện tại mà người dùng không thích.
+- Bữa cần thay thế: $mealTypeVi của ngày $dayLabel
+- Món ăn hiện tại người dùng MUỐN THAY THẾ: "$currentMealName" (Tránh gợi ý lại món này hoặc món quá giống món này).
+- Mục tiêu thể trạng người dùng: $goalVi
+- Chỉ số calo ước tính cho bữa ăn thay thế này: Khoảng 350 - 750 kcal phù hợp với bữa ăn $mealTypeVi.
+
+$pantrySection
+
+HÃY TRẢ VỀ ĐÚNG JSON THEO FORMAT SAU, KHÔNG GIẢI THÍCH THÊM, KHÔNG WRAP TRONG MARKDOWN:
+{
+  "name": "tên món ăn thay thế bằng tiếng Việt",
+  "totalCalories": 550,
+  "totalProtein": 25,
+  "ingredients": [
+    {"name": "tên nguyên liệu 1", "amount": "100g"},
+    {"name": "tên nguyên liệu 2", "amount": "2 quả"}
+  ],
+  "recipe": "1. Sơ chế...\n2. Chế biến..."
+}
+
+QUAN TRỌNG: Chỉ trả JSON thuần, KHÔNG giải thích, KHÔNG có ký tự markdown ```json.
+"""
+
+        val response = try {
+            withTimeout(30000L) {
+                dailyModel.generateContent(prompt)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Gemini swap meal API error", e)
+            throw Exception("Lỗi kết nối AI khi đổi món: ${e.message ?: "Không xác định"}. Thử lại.")
+        }
+
+        val responseText = response.text
+            ?: throw Exception("AI không trả về món ăn thay thế")
+
+        val jsonString = stripMarkdownWrapper(responseText)
+        return try {
+            val geminiMeal = Gson().fromJson(jsonString, GeminiMealItem::class.java)
+            if (geminiMeal.name.isBlank()) {
+                throw Exception("Món ăn thay thế trống tên")
+            }
+            Meal(
+                name = geminiMeal.name,
+                totalCalories = geminiMeal.totalCalories,
+                totalProtein = geminiMeal.totalProtein,
+                ingredients = geminiMeal.ingredients.map {
+                    Ingredient(name = it.name, amount = it.amount)
+                },
+                recipe = geminiMeal.recipe
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Swap meal JSON parse fail: $jsonString", e)
+            throw Exception("Lỗi định dạng món ăn từ AI. Thử lại.")
+        }
+    }
+
 
     // ═══════════════════════════════════════════════════
     // PRIVATE: BUILD PROMPT

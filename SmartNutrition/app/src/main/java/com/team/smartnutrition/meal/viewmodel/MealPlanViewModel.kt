@@ -239,6 +239,101 @@ class MealPlanViewModel : ViewModel() {
     }
 
     /**
+     * Gọi Gemini AI đổi món ăn cho một bữa cụ thể (ví dụ: đổi bữa sáng của Thứ 2).
+     */
+    fun changeSpecificMeal(dayIndex: Int, mealType: String) {
+        val uid = mealRepository.currentUid ?: return
+        val currentPlan = _uiState.value.mealPlan ?: return
+        val day = currentPlan.days.getOrNull(dayIndex) ?: return
+        val meal = day.meals[mealType] ?: return
+        val dayLabel = day.dayLabel
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isGenerating = true,
+                    loadingMessage = "🔄 AI đang đổi món ăn khác cho bạn...",
+                    errorMessage = null
+                )
+            }
+
+            try {
+                // 1. Đọc user profile
+                val user = userRepository.getUser(uid)
+                    ?: throw Exception("Chưa có thông tin cá nhân. Vui lòng cập nhật profile trước.")
+
+                val safeUser = if (user.calorieTarget == 0) {
+                    user.copy(
+                        calorieTarget = 2000,
+                        proteinTarget = 75,
+                        carbTarget = 250,
+                        fatTarget = 65
+                    )
+                } else user
+
+                // 2. Đọc pantry
+                val pantryItems = try {
+                    pantryRepository.getAvailableItems(uid)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
+                // 3. Gọi Gemini thay thế món
+                val newMeal = mealGeminiService.generateSingleMealReplacement(
+                    user = safeUser,
+                    pantryItems = pantryItems,
+                    dayLabel = dayLabel,
+                    mealType = mealType,
+                    currentMealName = meal.name
+                )
+
+                // 4. Cập nhật vào MealPlan
+                val updatedMeals = day.meals.toMutableMap().apply {
+                    put(mealType, newMeal)
+                }
+                val updatedDay = day.copy(
+                    meals = updatedMeals,
+                    totalCalories = updatedMeals.values.sumOf { it.totalCalories },
+                    totalProtein = updatedMeals.values.sumOf { it.totalProtein }
+                )
+                
+                val updatedDays = currentPlan.days.toMutableList()
+                if (dayIndex in updatedDays.indices) {
+                    updatedDays[dayIndex] = updatedDay
+                }
+
+                val updatedPlan = currentPlan.copy(
+                    days = updatedDays,
+                    totalCalories = updatedDays.sumOf { it.totalCalories }
+                )
+
+                // 5. Lưu Firestore
+                mealRepository.saveMealPlan(uid, updatedPlan)
+
+                _uiState.update {
+                    it.copy(
+                        mealPlan = updatedPlan,
+                        isGenerating = false,
+                        errorMessage = null
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = e.message ?: "Lỗi đổi món ăn"
+                    )
+                }
+            } finally {
+                _uiState.update { it.copy(isGenerating = false) }
+            }
+        }
+    }
+
+    /**
      * Chọn ngày trong TabRow (index 0-6).
      */
     fun selectDay(index: Int) {

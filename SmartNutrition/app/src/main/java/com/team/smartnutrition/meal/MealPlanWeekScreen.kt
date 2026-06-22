@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,7 +68,8 @@ fun MealPlanWeekScreen(
                     navController.navigate(Screen.MealDetail.createRoute(dayIndex, mealType))
                 },
                 onRegenerateClick = { viewModel.generateMealPlan() },
-                onGenerateDayClick = { dayIndex -> viewModel.generateMealPlanForDay(dayIndex) }
+                onGenerateDayClick = { dayIndex -> viewModel.generateMealPlanForDay(dayIndex) },
+                onSwapMealClick = { dayIndex, mealType -> viewModel.changeSpecificMeal(dayIndex, mealType) }
             )
         }
 
@@ -142,7 +144,8 @@ private fun MealPlanContent(
     onDaySelected: (Int) -> Unit,
     onMealClick: (dayIndex: Int, mealType: String) -> Unit,
     onRegenerateClick: () -> Unit,
-    onGenerateDayClick: (Int) -> Unit
+    onGenerateDayClick: (Int) -> Unit,
+    onSwapMealClick: (Int, String) -> Unit
 ) {
     val plan = uiState.mealPlan ?: return
     val selectedDay = plan.days.getOrNull(uiState.selectedDayIndex) ?: return
@@ -227,7 +230,8 @@ private fun MealPlanContent(
                         MealCard(
                             mealType = mealType,
                             meal = meal,
-                            onClick = { onMealClick(uiState.selectedDayIndex, mealType) }
+                            onClick = { onMealClick(uiState.selectedDayIndex, mealType) },
+                            onSwapClick = { onSwapMealClick(uiState.selectedDayIndex, mealType) }
                         )
                     }
                 }
@@ -350,7 +354,8 @@ private fun CalorieSummaryBar(consumed: Int, target: Int, protein: Int) {
 private fun MealCard(
     mealType: String,
     meal: Meal,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSwapClick: () -> Unit
 ) {
     val label = when (mealType.lowercase()) {
         "breakfast" -> stringResource(R.string.breakfast)
@@ -368,28 +373,44 @@ private fun MealCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = meal.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "🔥 ${meal.totalCalories} kcal",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "💪 ${meal.totalProtein}g protein",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = meal.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "🔥 ${meal.totalCalories} kcal",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "💪 ${meal.totalProtein}g protein",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            IconButton(
+                onClick = onSwapClick
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = stringResource(R.string.swap_meal_desc),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
