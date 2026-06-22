@@ -14,12 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.util.HealthCalculator
 import com.team.smartnutrition.auth.viewmodel.WeightLogViewModel
 import com.team.smartnutrition.common.components.SmartTopBar
@@ -48,6 +50,7 @@ fun WeightLogScreen(
     val displayFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     // Handle messages
+    val successMsg = stringResource(R.string.weight_logged_success)
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -56,7 +59,7 @@ fun WeightLogScreen(
     }
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
-            snackbarHostState.showSnackbar("✅ Đã lưu cân nặng hôm nay!")
+            snackbarHostState.showSnackbar(successMsg)
             viewModel.clearSaveSuccess()
         }
     }
@@ -64,7 +67,7 @@ fun WeightLogScreen(
     Scaffold(
         topBar = {
             SmartTopBar(
-                title = "Nhật ký cân nặng",
+                title = stringResource(R.string.weight_log_btn),
                 onBackClick = { navController.popBackStack() }
             )
         },
@@ -90,7 +93,7 @@ fun WeightLogScreen(
                         )
                     ) {
                         Column(Modifier.padding(20.dp)) {
-                            Text("Cân nặng hôm nay",
+                            Text(stringResource(R.string.today_weight_title),
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onPrimaryContainer)
                             Spacer(Modifier.height(12.dp))
@@ -98,7 +101,7 @@ fun WeightLogScreen(
                             OutlinedTextField(
                                 value = uiState.currentWeight,
                                 onValueChange = { viewModel.updateWeight(it) },
-                                label = { Text("Cân nặng (kg)") },
+                                label = { Text(stringResource(R.string.weight_label)) },
                                 leadingIcon = { Icon(Icons.Filled.MonitorWeight, null) },
                                 suffix = { Text("kg") },
                                 keyboardOptions = KeyboardOptions(
@@ -121,7 +124,7 @@ fun WeightLogScreen(
                             // BMI Preview
                             uiState.calculatedBmi?.let { bmi ->
                                 Spacer(Modifier.height(8.dp))
-                                Text("BMI mới: ${"%.2f".format(bmi)} (${HealthCalculator.getBmiCategory(bmi)})",
+                                Text(stringResource(R.string.new_bmi, bmi, HealthCalculator.getBmiCategory(bmi)),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
@@ -139,7 +142,7 @@ fun WeightLogScreen(
                                 } else {
                                     Icon(Icons.Filled.Save, null, Modifier.size(18.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Lưu hôm nay")
+                                    Text(stringResource(R.string.save_today))
                                 }
                             }
                         }
@@ -149,7 +152,7 @@ fun WeightLogScreen(
                 // ═══ History Header ═══
                 if (uiState.history.isNotEmpty()) {
                     item {
-                        Text("📅 Lịch sử",
+                        Text("📅 " + stringResource(R.string.weight_history),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                             modifier = Modifier.padding(top = 8.dp))
                     }
@@ -196,9 +199,9 @@ fun WeightLogScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("📊", style = MaterialTheme.typography.displaySmall)
                                 Spacer(Modifier.height(8.dp))
-                                Text("Chưa có dữ liệu", style = MaterialTheme.typography.bodyMedium,
+                                Text(stringResource(R.string.no_weight_data), style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("Hãy nhập cân nặng hôm nay để bắt đầu!",
+                                Text(stringResource(R.string.start_weight_log_hint),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }

@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     if (isCheckingAuth) {
-                        LoadingScreen(message = "Đang kiểm tra đăng nhập...")
+                        LoadingScreen(message = androidx.compose.ui.res.stringResource(R.string.checking_auth))
                     } else {
                         val navController = rememberNavController()
                         val navBackStackEntry by navController.currentBackStackEntryAsState()

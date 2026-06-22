@@ -11,16 +11,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.common.components.SmartTopBar
 import com.team.smartnutrition.meal.model.Ingredient
 import com.team.smartnutrition.meal.model.Meal
-import com.team.smartnutrition.meal.util.WeekUtils
 import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 /**
  * ═══════════════════════════════════════════
@@ -38,8 +40,6 @@ import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
  *     - Section Nguyên liệu
  *     - Section Cách nấu (multi-line)
  */
-import androidx.compose.runtime.LaunchedEffect
-
 @Composable
 fun MealDetailScreen(
     navController: NavController,
@@ -49,8 +49,39 @@ fun MealDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val meal = uiState.mealPlan?.days?.getOrNull(dayIndex)?.meals?.get(mealType)
-    val dayLabel = uiState.mealPlan?.days?.getOrNull(dayIndex)?.dayLabel ?: ""
-    val mealLabel = WeekUtils.mealTypeLabels[mealType] ?: mealType
+    val dayLabelRaw = uiState.mealPlan?.days?.getOrNull(dayIndex)?.dayLabel ?: ""
+
+    val isEnglish = stringResource(R.string.filter_all) == "All"
+    val dayLabel = if (isEnglish) {
+        when {
+            dayLabelRaw.startsWith("Chủ") || dayLabelRaw.contains("Sunday", ignoreCase = true) -> "Sunday"
+            dayLabelRaw.endsWith("2") || dayLabelRaw.contains("Monday", ignoreCase = true) -> "Monday"
+            dayLabelRaw.endsWith("3") || dayLabelRaw.contains("Tuesday", ignoreCase = true) -> "Tuesday"
+            dayLabelRaw.endsWith("4") || dayLabelRaw.contains("Wednesday", ignoreCase = true) -> "Wednesday"
+            dayLabelRaw.endsWith("5") || dayLabelRaw.contains("Thursday", ignoreCase = true) -> "Thursday"
+            dayLabelRaw.endsWith("6") || dayLabelRaw.contains("Friday", ignoreCase = true) -> "Friday"
+            dayLabelRaw.endsWith("7") || dayLabelRaw.contains("Saturday", ignoreCase = true) -> "Saturday"
+            else -> dayLabelRaw
+        }
+    } else {
+        when {
+            dayLabelRaw.startsWith("Chủ") || dayLabelRaw.contains("Sunday", ignoreCase = true) -> "Chủ Nhật"
+            dayLabelRaw.endsWith("2") || dayLabelRaw.contains("Monday", ignoreCase = true) -> "Thứ 2"
+            dayLabelRaw.endsWith("3") || dayLabelRaw.contains("Tuesday", ignoreCase = true) -> "Thứ 3"
+            dayLabelRaw.endsWith("4") || dayLabelRaw.contains("Wednesday", ignoreCase = true) -> "Thứ 4"
+            dayLabelRaw.endsWith("5") || dayLabelRaw.contains("Thursday", ignoreCase = true) -> "Thứ 5"
+            dayLabelRaw.endsWith("6") || dayLabelRaw.contains("Friday", ignoreCase = true) -> "Thứ 6"
+            dayLabelRaw.endsWith("7") || dayLabelRaw.contains("Saturday", ignoreCase = true) -> "Thứ 7"
+            else -> dayLabelRaw
+        }
+    }
+
+    val mealLabel = when (mealType.lowercase()) {
+        "breakfast" -> stringResource(R.string.breakfast)
+        "lunch" -> stringResource(R.string.lunch)
+        "dinner" -> stringResource(R.string.dinner)
+        else -> mealType
+    }
 
     // Tự động gọi tải chi tiết món ăn khi màn hình được tạo
     LaunchedEffect(dayIndex, mealType) {
@@ -78,7 +109,7 @@ fun MealDetailScreen(
                         CircularProgressIndicator(modifier = Modifier.size(44.dp))
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            text = "AI đang thiết lập công thức & nguyên liệu...",
+                            text = stringResource(R.string.ai_detail_loading),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -98,7 +129,7 @@ fun MealDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = uiState.detailErrorMessage ?: "Lỗi tải công thức",
+                            text = uiState.detailErrorMessage ?: stringResource(R.string.detail_error_title),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -106,7 +137,7 @@ fun MealDetailScreen(
                         Button(
                             onClick = { viewModel.loadMealDetail(dayIndex, mealType) }
                         ) {
-                            Text("Thử lại")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }
@@ -120,7 +151,7 @@ fun MealDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Không tìm thấy thông tin bữa ăn.",
+                        text = stringResource(R.string.no_meal_info),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -174,7 +205,7 @@ private fun MealDetailContent(meal: Meal, modifier: Modifier = Modifier) {
         // Section: Nguyên liệu header
         item {
             Text(
-                text = "📝 Nguyên liệu",
+                text = "📝 " + stringResource(R.string.ingredients_section),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 8.dp)
@@ -194,7 +225,7 @@ private fun MealDetailContent(meal: Meal, modifier: Modifier = Modifier) {
         // Section: Cách nấu header
         item {
             Text(
-                text = "👨‍🍳 Cách nấu",
+                text = "👨‍🍳 " + stringResource(R.string.recipe_section),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )

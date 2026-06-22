@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.viewmodel.RegisterViewModel
 import com.team.smartnutrition.common.components.SmartTopBar
 import com.team.smartnutrition.navigation.Screen
@@ -70,7 +72,7 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             SmartTopBar(
-                title = "Đăng ký",
+                title = stringResource(R.string.register_title),
                 onBackClick = { navController.popBackStack() }
             )
         },
@@ -88,11 +90,11 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Tạo tài khoản mới",
+                text = stringResource(R.string.create_account_title),
                 style = MaterialTheme.typography.headlineMedium
             )
             Text(
-                text = "Bắt đầu hành trình sức khỏe của bạn",
+                text = stringResource(R.string.register_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
@@ -102,7 +104,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = { viewModel.updateEmail(it) },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email_label)) },
                 leadingIcon = {
                     Icon(Icons.Filled.Email, contentDescription = null)
                 },
@@ -128,7 +130,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = { viewModel.updatePassword(it) },
-                label = { Text("Mật khẩu") },
+                label = { Text(stringResource(R.string.password_label)) },
                 leadingIcon = {
                     Icon(Icons.Filled.Lock, contentDescription = null)
                 },
@@ -137,7 +139,7 @@ fun RegisterScreen(
                         Icon(
                             if (passwordVisible) Icons.Filled.Visibility
                             else Icons.Filled.VisibilityOff,
-                            contentDescription = "Toggle password"
+                            contentDescription = stringResource(R.string.password_label)
                         )
                     }
                 },
@@ -158,10 +160,10 @@ fun RegisterScreen(
                     if (uiState.passwordError != null) {
                         Text(uiState.passwordError!!, color = MaterialTheme.colorScheme.error)
                     } else if (uiState.password.isNotBlank()) {
-                        Text("✅ Mật khẩu hợp lệ", color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.password_valid), color = MaterialTheme.colorScheme.primary)
                     } else {
                         Text(
-                            "≥6 ký tự, 1 chữ hoa, 1 chữ số",
+                            stringResource(R.string.password_requirement),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -174,7 +176,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = uiState.confirmPassword,
                 onValueChange = { viewModel.updateConfirmPassword(it) },
-                label = { Text("Xác nhận mật khẩu") },
+                label = { Text(stringResource(R.string.confirm_password_label)) },
                 leadingIcon = {
                     Icon(Icons.Filled.Lock, contentDescription = null)
                 },
@@ -183,7 +185,7 @@ fun RegisterScreen(
                         Icon(
                             if (confirmPasswordVisible) Icons.Filled.Visibility
                             else Icons.Filled.VisibilityOff,
-                            contentDescription = "Toggle confirm password"
+                            contentDescription = stringResource(R.string.confirm_password_label)
                         )
                     }
                 },
@@ -226,7 +228,7 @@ fun RegisterScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Đăng ký", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.register_button), style = MaterialTheme.typography.labelLarge)
                 }
             }
 

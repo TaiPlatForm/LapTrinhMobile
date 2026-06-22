@@ -19,11 +19,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.common.components.SmartTopBar
 import com.team.smartnutrition.habit.viewmodel.HabitUiState
 import com.team.smartnutrition.habit.viewmodel.HabitViewModel
@@ -78,7 +80,7 @@ fun ReminderSettingsScreen(
     Scaffold(
         topBar = {
             SmartTopBar(
-                title = "Cài đặt nhắc nhở",
+                title = stringResource(R.string.reminder_settings_title),
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -158,14 +160,14 @@ private fun ExactAlarmWarning(context: Context) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "⚠️ Cần cấp quyền đặt báo thức",
+                        text = "⚠️ " + stringResource(R.string.alarm_permission_warning),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Để nhắc nhở hoạt động chính xác, bạn cần cấp quyền trong cài đặt hệ thống.",
+                        text = stringResource(R.string.alarm_permission_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -176,7 +178,7 @@ private fun ExactAlarmWarning(context: Context) {
                             context.startActivity(intent)
                         }
                     ) {
-                        Text("Mở cài đặt →")
+                        Text(stringResource(R.string.open_settings_btn))
                     }
                 }
             }
@@ -207,7 +209,7 @@ private fun WaterGoalSelector(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "🎯 Mục tiêu nước (cốc/ngày)",
+                text = "🎯 " + stringResource(R.string.water_goal_cups_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -237,7 +239,7 @@ private fun WaterGoalSelector(
             }
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "= ${currentGoal * 250}ml / ngày",
+                text = stringResource(R.string.water_ml_per_day, currentGoal * 250),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -279,7 +281,7 @@ private fun WaterReminderSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "💧 Nhắc uống nước",
+                    text = "💧 " + stringResource(R.string.water_reminder_label),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -298,7 +300,7 @@ private fun WaterReminderSection(
 
                     // Interval selector
                     Text(
-                        text = "Chu kỳ nhắc:",
+                        text = stringResource(R.string.reminder_interval),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -308,7 +310,7 @@ private fun WaterReminderSection(
                             FilterChip(
                                 selected = uiState.waterIntervalHours == interval,
                                 onClick = { onIntervalChanged(interval) },
-                                label = { Text("Mỗi ${interval}h") }
+                                label = { Text(stringResource(R.string.reminder_interval_hours, interval)) }
                             )
                         }
                     }
@@ -317,7 +319,7 @@ private fun WaterReminderSection(
 
                     // Giờ bắt đầu / kết thúc
                     Text(
-                        text = "Khung giờ nhắc:",
+                        text = stringResource(R.string.reminder_timeframe),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -331,14 +333,14 @@ private fun WaterReminderSection(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Từ ${uiState.waterStartHour}:00")
+                            Text(stringResource(R.string.reminder_start_hour, uiState.waterStartHour))
                         }
                         OutlinedButton(
                             onClick = { showEndTimePicker = true },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Đến ${uiState.waterEndHour}:00")
+                            Text(stringResource(R.string.reminder_end_hour, uiState.waterEndHour))
                         }
                     }
                 }
@@ -401,7 +403,7 @@ private fun VitaminReminderSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "💊 Nhắc uống vitamin",
+                    text = "💊 " + stringResource(R.string.vitamin_reminder_label),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -418,7 +420,7 @@ private fun VitaminReminderSection(
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        text = "Giờ nhắc:",
+                        text = stringResource(R.string.vitamin_reminder_hour),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -471,7 +473,7 @@ private fun TimePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Chọn giờ") },
+        title = { Text(stringResource(R.string.select_time_title)) },
         text = {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -484,12 +486,12 @@ private fun TimePickerDialog(
             TextButton(
                 onClick = { onConfirm(timePickerState.hour, timePickerState.minute) }
             ) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

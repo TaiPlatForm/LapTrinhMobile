@@ -15,11 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.common.components.LoadingScreen
 import com.team.smartnutrition.habit.viewmodel.HabitUiState
 import com.team.smartnutrition.habit.viewmodel.HabitViewModel
@@ -46,7 +48,7 @@ fun HabitDashboardScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            uiState.isLoading -> LoadingScreen("Đang tải thói quen...")
+            uiState.isLoading -> LoadingScreen(stringResource(R.string.loading_habits))
             else -> HabitDashboardContent(
                 uiState = uiState,
                 onAddWater = { viewModel.addWaterCup() },
@@ -81,7 +83,7 @@ fun HabitDashboardScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     TextButton(onClick = { viewModel.clearError() }) {
-                        Text("Đóng")
+                        Text(stringResource(R.string.close))
                     }
                 }
             }
@@ -111,7 +113,7 @@ private fun HabitDashboardContent(
     ) {
         // Header
         Text(
-            text = "💧 Theo dõi thói quen hôm nay",
+            text = "💧 " + stringResource(R.string.habit_dashboard_title),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             fontWeight = FontWeight.Bold
@@ -147,7 +149,7 @@ private fun HabitDashboardContent(
         ) {
             Icon(Icons.Default.Settings, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("⚙️ Cài đặt nhắc nhở")
+            Text("⚙️ " + stringResource(R.string.reminder_settings_btn))
         }
 
         // Bottom spacing
@@ -188,7 +190,7 @@ private fun WaterProgressSection(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "💧 Lượng nước hôm nay",
+                text = "💧 " + stringResource(R.string.water_today_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -216,7 +218,7 @@ private fun WaterProgressSection(
                         else MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "/ $waterGoal cốc",
+                        text = stringResource(R.string.water_goal_cups, waterGoal),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -232,7 +234,7 @@ private fun WaterProgressSection(
             if (isGoalReached) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "🎉 Đạt mục tiêu!",
+                    text = "🎉 " + stringResource(R.string.target_achieved),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color(0xFF4CAF50),
                     fontWeight = FontWeight.Bold
@@ -251,11 +253,11 @@ private fun WaterProgressSection(
                     enabled = waterCups > 0,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Default.Remove, "Giảm 1 cốc")
+                    Icon(Icons.Default.Remove, stringResource(R.string.decrease_cup))
                 }
 
                 Text(
-                    text = "$waterCups cốc",
+                    text = stringResource(R.string.cups_unit, waterCups),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -264,7 +266,7 @@ private fun WaterProgressSection(
                     onClick = onAdd,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Default.Add, "Thêm 1 cốc")
+                    Icon(Icons.Default.Add, stringResource(R.string.increase_cup))
                 }
             }
         }
@@ -300,7 +302,7 @@ private fun SleepSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "😴 Giờ ngủ đêm qua",
+                    text = "😴 " + stringResource(R.string.sleep_last_night),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -373,12 +375,13 @@ private fun VitaminSection(
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Vitamin hôm nay",
+                        text = stringResource(R.string.vitamin_today),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = if (vitaminTaken) "Đã uống ✓" else "Chưa uống",
+                        text = if (vitaminTaken) stringResource(R.string.vitamin_taken)
+                        else stringResource(R.string.vitamin_not_taken),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (vitaminTaken) Color(0xFF4CAF50)
                         else MaterialTheme.colorScheme.onSurfaceVariant

@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.common.components.ErrorCard
 import com.team.smartnutrition.common.components.GradientButton
 import com.team.smartnutrition.common.components.LoadingScreen
@@ -54,7 +56,7 @@ fun MealPlanWeekScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            uiState.isLoading -> LoadingScreen("Đang tải thực đơn...")
+            uiState.isLoading -> LoadingScreen(stringResource(R.string.loading_meal_plan))
             uiState.mealPlan == null -> EmptyMealPlanContent(
                 onGenerateClick = { viewModel.generateMealPlan() }
             )
@@ -108,13 +110,13 @@ private fun EmptyMealPlanContent(onGenerateClick: () -> Unit) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "Chưa có thực đơn",
+            text = stringResource(R.string.no_meal_plan),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Để AI gợi ý thực đơn 7 ngày\ndựa trên kho thực phẩm và chỉ số dinh dưỡng của bạn",
+            text = stringResource(R.string.meal_plan_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -122,7 +124,7 @@ private fun EmptyMealPlanContent(onGenerateClick: () -> Unit) {
         )
         Spacer(Modifier.height(24.dp))
         GradientButton(
-            text = "🤖 Lên thực đơn bằng AI",
+            text = stringResource(R.string.generate_meal_plan_btn),
             onClick = onGenerateClick,
             icon = Icons.Filled.AutoAwesome
         )
@@ -146,7 +148,7 @@ private fun MealPlanContent(
     Column(modifier = Modifier.fillMaxSize()) {
         // Nút regenerate
         GradientButton(
-            text = "🔄 Đổi thực đơn tuần mới",
+            text = stringResource(R.string.regenerate_meal_plan_btn),
             onClick = onRegenerateClick,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -208,10 +210,29 @@ private fun DayTabRow(
                 selected = selectedIndex == index,
                 onClick = { onDaySelected(index) },
                 text = {
-                    // Rút gọn: "Thứ 2" → "T2", "Chủ Nhật" → "CN"
-                    val shortLabel = when {
-                        day.dayLabel.startsWith("Chủ") -> "CN"
-                        else -> "T${day.dayLabel.last()}"
+                    val isEnglish = stringResource(R.string.filter_all) == "All"
+                    val shortLabel = if (isEnglish) {
+                        when {
+                            day.dayLabel.startsWith("Chủ") || day.dayLabel.contains("Sunday", ignoreCase = true) -> "Sun"
+                            day.dayLabel.endsWith("2") || day.dayLabel.contains("Monday", ignoreCase = true) -> "Mon"
+                            day.dayLabel.endsWith("3") || day.dayLabel.contains("Tuesday", ignoreCase = true) -> "Tue"
+                            day.dayLabel.endsWith("4") || day.dayLabel.contains("Wednesday", ignoreCase = true) -> "Wed"
+                            day.dayLabel.endsWith("5") || day.dayLabel.contains("Thursday", ignoreCase = true) -> "Thu"
+                            day.dayLabel.endsWith("6") || day.dayLabel.contains("Friday", ignoreCase = true) -> "Fri"
+                            day.dayLabel.endsWith("7") || day.dayLabel.contains("Saturday", ignoreCase = true) -> "Sat"
+                            else -> day.dayLabel.take(3)
+                        }
+                    } else {
+                        when {
+                            day.dayLabel.startsWith("Chủ") || day.dayLabel.contains("Sunday", ignoreCase = true) -> "CN"
+                            day.dayLabel.endsWith("2") || day.dayLabel.contains("Monday", ignoreCase = true) -> "T2"
+                            day.dayLabel.endsWith("3") || day.dayLabel.contains("Tuesday", ignoreCase = true) -> "T3"
+                            day.dayLabel.endsWith("4") || day.dayLabel.contains("Wednesday", ignoreCase = true) -> "T4"
+                            day.dayLabel.endsWith("5") || day.dayLabel.contains("T5") -> "T5"
+                            day.dayLabel.endsWith("6") -> "T6"
+                            day.dayLabel.endsWith("7") -> "T7"
+                            else -> "T${day.dayLabel.lastOrNull() ?: ""}"
+                        }
                     }
                     Text(shortLabel)
                 }
@@ -282,7 +303,12 @@ private fun MealCard(
     meal: Meal,
     onClick: () -> Unit
 ) {
-    val label = WeekUtils.mealTypeLabels[mealType] ?: mealType
+    val label = when (mealType.lowercase()) {
+        "breakfast" -> stringResource(R.string.breakfast)
+        "lunch" -> stringResource(R.string.lunch)
+        "dinner" -> stringResource(R.string.dinner)
+        else -> mealType
+    }
 
     Card(
         onClick = onClick,
@@ -358,7 +384,7 @@ private fun GeneratingDialog(message: String) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Quá trình này mất khoảng 10-15 giây",
+                    text = stringResource(R.string.ai_generating_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

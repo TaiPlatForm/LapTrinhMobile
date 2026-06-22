@@ -125,7 +125,7 @@ fun SettingsScreen(navController: NavController) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Info,
-                            contentDescription = "Phiên bản",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Column {

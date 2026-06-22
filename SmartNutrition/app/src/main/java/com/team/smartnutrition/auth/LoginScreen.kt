@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.viewmodel.LoginDestination
 import com.team.smartnutrition.auth.viewmodel.LoginViewModel
 import com.team.smartnutrition.navigation.Screen
@@ -44,7 +46,7 @@ import com.team.smartnutrition.navigation.Screen
  * - Đăng nhập Email/Password (Firebase Auth)
  * - Đăng nhập Google (Credential Manager)
  * - Kiểm tra profile → navigate phù hợp
- * - Validation + error handling tiếng Việt
+ * - Validation + error handling tiếng Việt/Anh
  */
 @Composable
 fun LoginScreen(
@@ -107,7 +109,7 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Quản lý dinh dưỡng thông minh với AI",
+                text = stringResource(R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -118,7 +120,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = { viewModel.updateEmail(it) },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email_label)) },
                 leadingIcon = {
                     Icon(Icons.Filled.Email, contentDescription = null)
                 },
@@ -140,7 +142,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = { viewModel.updatePassword(it) },
-                label = { Text("Mật khẩu") },
+                label = { Text(stringResource(R.string.password_label)) },
                 leadingIcon = {
                     Icon(Icons.Filled.Lock, contentDescription = null)
                 },
@@ -149,7 +151,7 @@ fun LoginScreen(
                         Icon(
                             if (passwordVisible) Icons.Filled.Visibility
                             else Icons.Filled.VisibilityOff,
-                            contentDescription = "Toggle password"
+                            contentDescription = stringResource(R.string.password_label)
                         )
                     }
                 },
@@ -188,7 +190,7 @@ fun LoginScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Đăng nhập", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.login_button), style = MaterialTheme.typography.labelLarge)
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -200,7 +202,7 @@ fun LoginScreen(
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f))
                 Text(
-                    text = "  hoặc  ",
+                    text = "  " + stringResource(R.string.or_divider) + "  ",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -222,7 +224,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(12.dp),
                 enabled = !uiState.isLoading
             ) {
-                Text("🔵  Đăng nhập bằng Google")
+                Text("🔵  " + stringResource(R.string.google_signin))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -233,7 +235,7 @@ fun LoginScreen(
                 enabled = !uiState.isLoading
             ) {
                 Text(
-                    "Chưa có tài khoản? Đăng ký ngay",
+                    stringResource(R.string.no_account),
                     color = MaterialTheme.colorScheme.primary
                 )
             }

@@ -12,10 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.util.HealthCalculator
 import com.team.smartnutrition.auth.viewmodel.ProfileViewUiState
 import com.team.smartnutrition.auth.viewmodel.ProfileViewViewModel
@@ -45,7 +47,7 @@ fun ProfileViewScreen(
     when {
         uiState.isLoading -> LoadingScreen()
         uiState.errorMessage != null && uiState.user == null -> {
-            ErrorCard(message = uiState.errorMessage ?: "Lỗi", onRetry = { viewModel.loadProfile() })
+            ErrorCard(message = uiState.errorMessage ?: stringResource(R.string.error_generic), onRetry = { viewModel.loadProfile() })
         }
         uiState.isEditing -> EditProfileContent(uiState, viewModel)
         else -> ViewProfileContent(uiState, viewModel, navController)
@@ -64,10 +66,10 @@ private fun ViewProfileContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hồ sơ cá nhân") },
+                title = { Text(stringResource(R.string.profile_title)) },
                 actions = {
                     IconButton(onClick = { viewModel.startEditing() }) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Chỉnh sửa")
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.btn_edit))
                     }
                 }
             )
@@ -94,20 +96,34 @@ private fun ViewProfileContent(
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Thông tin", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                    Text(stringResource(R.string.info_title), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                     Spacer(Modifier.height(12.dp))
-                    InfoRow("Giới tính", if (user.gender == "male") "🚹 Nam" else "🚺 Nữ")
-                    InfoRow("Tuổi", "${HealthCalculator.calculateAge(user.birthYear)} (${user.birthYear})")
-                    InfoRow("Chiều cao", "${user.heightCm} cm")
-                    InfoRow("Cân nặng", "${"%.1f".format(user.weightKg)} kg")
-                    InfoRow("Mục tiêu", goalOptions.find { it.value == user.goal }?.let { "${it.emoji} ${it.label}" } ?: user.goal)
-                    InfoRow("Vận động", activityLevelOptions.find { it.value == user.activityLevel }?.let { "${it.emoji} ${it.label}" } ?: "${user.activityLevel}")
+                    InfoRow(stringResource(R.string.gender_label), if (user.gender == "male") "🚹 " + stringResource(R.string.gender_male) else "🚺 " + stringResource(R.string.gender_female))
+                    InfoRow(stringResource(R.string.age_label), "${HealthCalculator.calculateAge(user.birthYear)} (${user.birthYear})")
+                    InfoRow(stringResource(R.string.height_label), "${user.heightCm} cm")
+                    InfoRow(stringResource(R.string.weight_label), "${"%.1f".format(user.weightKg)} kg")
+                    
+                    val goalLabel = when(user.goal) {
+                        "lose_weight" -> "🔥 " + stringResource(R.string.goal_lose)
+                        "gain_muscle" -> "💪 " + stringResource(R.string.goal_gain)
+                        else -> "⚖️ " + stringResource(R.string.goal_maintain)
+                    }
+                    InfoRow(stringResource(R.string.goal_label), goalLabel)
+                    
+                    val activityLabel = when(user.activityLevel) {
+                        1.2 -> "🚶 " + stringResource(R.string.activity_sedentary)
+                        1.375 -> "🏃 " + stringResource(R.string.activity_light)
+                        1.55 -> "🏋️ " + stringResource(R.string.activity_moderate)
+                        1.725 -> "🏅 " + stringResource(R.string.activity_very)
+                        else -> "🔥 " + stringResource(R.string.activity_extreme)
+                    }
+                    InfoRow(stringResource(R.string.activity_label), activityLabel)
                 }
             }
             Spacer(Modifier.height(16.dp))
 
             // Health Metrics
-            Text("📊 Chỉ số sức khỏe", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            Text("📊 " + stringResource(R.string.health_indices), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetricCard("BMI", "${"%.1f".format(user.bmi)}", HealthCalculator.getBmiCategory(user.bmi), Modifier.weight(1f))
@@ -116,7 +132,7 @@ private fun ViewProfileContent(
             Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetricCard("TDEE", "${"%.0f".format(user.tdee)}", "kcal/ngày", Modifier.weight(1f))
-                MetricCard("Mục tiêu", "${user.calorieTarget}", "kcal/ngày", Modifier.weight(1f))
+                MetricCard(stringResource(R.string.goal_label), "${user.calorieTarget}", "kcal/ngày", Modifier.weight(1f))
             }
             Spacer(Modifier.height(16.dp))
 
@@ -124,7 +140,7 @@ private fun ViewProfileContent(
             Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("🍽️ Macros mục tiêu/ngày", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                    Text(stringResource(R.string.daily_macros), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                     Spacer(Modifier.height(12.dp))
                     MacroBar("Protein", user.proteinTarget, 200, MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(8.dp))
@@ -139,18 +155,18 @@ private fun ViewProfileContent(
             OutlinedButton(onClick = { navController.navigate(Screen.WeightLog.route) },
                 modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp)) {
                 Icon(Icons.Filled.MonitorWeight, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp)); Text("Nhật ký cân nặng")
+                Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.weight_log_btn))
             }
             Spacer(Modifier.height(8.dp))
             OutlinedButton(onClick = { navController.navigate(Screen.Settings.route) },
                 modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(12.dp)) {
                 Icon(Icons.Filled.Settings, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp)); Text("Cài đặt")
+                Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.settings_title))
             }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Logout, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp)); Text("Đăng xuất", color = MaterialTheme.colorScheme.error)
+                Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.logout), color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -165,12 +181,12 @@ private fun EditProfileContent(uiState: ProfileViewUiState, viewModel: ProfileVi
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Chỉnh sửa hồ sơ") },
-                navigationIcon = { IconButton(onClick = { viewModel.cancelEditing() }) { Icon(Icons.Filled.Close, "Hủy") } },
+            TopAppBar(title = { Text(stringResource(R.string.edit_profile_title)) },
+                navigationIcon = { IconButton(onClick = { viewModel.cancelEditing() }) { Icon(Icons.Filled.Close, stringResource(R.string.cancel)) } },
                 actions = {
                     TextButton(onClick = { viewModel.saveChanges() }, enabled = !uiState.isSaving) {
                         if (uiState.isSaving) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        else Text("Lưu", fontWeight = FontWeight.Bold)
+                        else Text(stringResource(R.string.save), fontWeight = FontWeight.Bold)
                     }
                 })
         },
@@ -179,35 +195,49 @@ private fun EditProfileContent(uiState: ProfileViewUiState, viewModel: ProfileVi
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             OutlinedTextField(value = uiState.editDisplayName, onValueChange = { viewModel.updateEditDisplayName(it) },
-                label = { Text("Tên hiển thị") }, leadingIcon = { Icon(Icons.Filled.Person, null) },
+                label = { Text(stringResource(R.string.display_name_label)) }, leadingIcon = { Icon(Icons.Filled.Person, null) },
                 shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), singleLine = true)
 
-            Text("Giới tính", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.gender_label), style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FilterChip(selected = uiState.editGender == "male", onClick = { viewModel.updateEditGender("male") }, label = { Text("🚹 Nam") })
-                FilterChip(selected = uiState.editGender == "female", onClick = { viewModel.updateEditGender("female") }, label = { Text("🚺 Nữ") })
+                FilterChip(selected = uiState.editGender == "male", onClick = { viewModel.updateEditGender("male") }, label = { Text("🚹 " + stringResource(R.string.gender_male)) })
+                FilterChip(selected = uiState.editGender == "female", onClick = { viewModel.updateEditGender("female") }, label = { Text("🚺 " + stringResource(R.string.gender_female)) })
             }
 
-            Text("Năm sinh: ${uiState.editBirthYear}", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.birth_year_label, uiState.editBirthYear), style = MaterialTheme.typography.titleMedium)
             Slider(value = uiState.editBirthYear.toFloat(), onValueChange = { viewModel.updateEditBirthYear(it.toInt()) }, valueRange = 1940f..2015f)
 
-            Text("Chiều cao: ${uiState.editHeightCm} cm", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.height_slider_label, uiState.editHeightCm), style = MaterialTheme.typography.titleMedium)
             Slider(value = uiState.editHeightCm.toFloat(), onValueChange = { viewModel.updateEditHeightCm(it.toInt()) }, valueRange = 100f..250f)
 
-            Text("Cân nặng: ${"%.1f".format(uiState.editWeightKg)} kg", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.weight_slider_label, uiState.editWeightKg), style = MaterialTheme.typography.titleMedium)
             Slider(value = uiState.editWeightKg.toFloat(), onValueChange = { viewModel.updateEditWeightKg((it * 10).toInt() / 10.0) }, valueRange = 30f..200f)
 
-            Text("Mục tiêu", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.goal_label), style = MaterialTheme.typography.titleMedium)
             goalOptions.forEach { option ->
                 FilterChip(selected = uiState.editGoal == option.value, onClick = { viewModel.updateEditGoal(option.value) },
-                    label = { Text("${option.emoji} ${option.label}") })
+                    label = {
+                        val labelText = when (option.value) {
+                            "lose_weight" -> "🔥 " + stringResource(R.string.goal_lose)
+                            "gain_muscle" -> "💪 " + stringResource(R.string.goal_gain)
+                            else -> "⚖️ " + stringResource(R.string.goal_maintain)
+                        }
+                        Text(labelText)
+                    })
             }
 
-            Text("Mức độ vận động", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.activity_label), style = MaterialTheme.typography.titleMedium)
             activityLevelOptions.forEach { option ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = uiState.editActivityLevel == option.value, onClick = { viewModel.updateEditActivityLevel(option.value) })
-                    Text("${option.emoji} ${option.label}")
+                    val labelText = when (option.value) {
+                        1.2 -> "🚶 " + stringResource(R.string.activity_sedentary)
+                        1.375 -> "🏃 " + stringResource(R.string.activity_light)
+                        1.55 -> "🏋️ " + stringResource(R.string.activity_moderate)
+                        1.725 -> "🏅 " + stringResource(R.string.activity_very)
+                        else -> "🔥 " + stringResource(R.string.activity_extreme)
+                    }
+                    Text(labelText)
                 }
             }
         }

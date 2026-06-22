@@ -5,7 +5,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,12 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.viewmodel.*
 import com.team.smartnutrition.navigation.Screen
 import java.time.Year
@@ -63,7 +63,7 @@ fun ProfileSetupScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Thiết lập hồ sơ  ${uiState.currentStep}/${uiState.totalSteps}")
+                    Text(stringResource(R.string.profile_setup_step_title, uiState.currentStep, uiState.totalSteps))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -141,7 +141,7 @@ fun ProfileSetupScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Quay lại")
+                            Text(stringResource(R.string.back))
                         }
                     }
 
@@ -167,7 +167,7 @@ fun ProfileSetupScreen(
                                 strokeWidth = 2.dp
                             )
                         } else if (uiState.currentStep < uiState.totalSteps) {
-                            Text("Tiếp theo")
+                            Text(stringResource(R.string.next))
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowForward,
@@ -181,7 +181,7 @@ fun ProfileSetupScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Hoàn tất")
+                            Text(stringResource(R.string.finish))
                         }
                     }
                 }
@@ -201,11 +201,11 @@ private fun Step1Content(
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         // Title
         Text(
-            text = "Thông tin cơ bản",
+            text = stringResource(R.string.basic_info_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
         Text(
-            text = "Cho chúng tôi biết đôi chút về bạn",
+            text = stringResource(R.string.basic_info_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -214,7 +214,7 @@ private fun Step1Content(
         OutlinedTextField(
             value = uiState.displayName,
             onValueChange = { viewModel.updateDisplayName(it) },
-            label = { Text("Tên hiển thị") },
+            label = { Text(stringResource(R.string.display_name_label)) },
             leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -223,7 +223,7 @@ private fun Step1Content(
 
         // ═══ Giới tính ═══
         Text(
-            text = "Giới tính",
+            text = stringResource(R.string.gender_label),
             style = MaterialTheme.typography.titleMedium
         )
         Row(
@@ -232,14 +232,14 @@ private fun Step1Content(
         ) {
             GenderCard(
                 emoji = "🚹",
-                label = "Nam",
+                label = stringResource(R.string.gender_male),
                 isSelected = uiState.gender == "male",
                 onClick = { viewModel.updateGender("male") },
                 modifier = Modifier.weight(1f)
             )
             GenderCard(
                 emoji = "🚺",
-                label = "Nữ",
+                label = stringResource(R.string.gender_female),
                 isSelected = uiState.gender == "female",
                 onClick = { viewModel.updateGender("female") },
                 modifier = Modifier.weight(1f)
@@ -248,7 +248,7 @@ private fun Step1Content(
 
         // ═══ Năm sinh ═══
         Text(
-            text = "Năm sinh: ${uiState.birthYear}  (${Year.now().value - uiState.birthYear} tuổi)",
+            text = stringResource(R.string.birth_year_display, uiState.birthYear, Year.now().value - uiState.birthYear),
             style = MaterialTheme.typography.titleMedium
         )
         Slider(
@@ -316,11 +316,11 @@ private fun Step2Content(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Text(
-            text = "Chỉ số cơ thể",
+            text = stringResource(R.string.body_metrics_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
         Text(
-            text = "Giúp tính toán nhu cầu dinh dưỡng chính xác",
+            text = stringResource(R.string.body_metrics_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -339,7 +339,7 @@ private fun Step2Content(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("📏 Chiều cao", style = MaterialTheme.typography.titleMedium)
+                    Text("📏 " + stringResource(R.string.height_label), style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = "${uiState.heightCm} cm",
                         style = MaterialTheme.typography.headlineSmall.copy(
@@ -381,7 +381,7 @@ private fun Step2Content(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("⚖️ Cân nặng", style = MaterialTheme.typography.titleMedium)
+                    Text("⚖️ " + stringResource(R.string.weight_label), style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = "${"%.1f".format(uiState.weightKg)} kg",
                         style = MaterialTheme.typography.headlineSmall.copy(
@@ -435,7 +435,7 @@ private fun Step2Content(
             ) {
                 Column {
                     Text(
-                        "BMI hiện tại",
+                        stringResource(R.string.current_bmi),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -467,13 +467,23 @@ private fun Step3Content(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
-            text = "Mục tiêu & Vận động",
+            text = stringResource(R.string.goal_activity_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
 
         // ═══ Mục tiêu sức khỏe ═══
-        Text("Mục tiêu sức khỏe", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.goal_label), style = MaterialTheme.typography.titleMedium)
         goalOptions.forEach { option ->
+            val labelText = when (option.value) {
+                "lose_weight" -> stringResource(R.string.goal_lose)
+                "gain_muscle" -> stringResource(R.string.goal_gain)
+                else -> stringResource(R.string.goal_maintain)
+            }
+            val descText = when (option.value) {
+                "lose_weight" -> stringResource(R.string.goal_lose_desc)
+                "gain_muscle" -> stringResource(R.string.goal_gain_desc)
+                else -> stringResource(R.string.goal_maintain_desc)
+            }
             Card(
                 onClick = { viewModel.updateGoal(option.value) },
                 modifier = Modifier.fillMaxWidth(),
@@ -497,12 +507,12 @@ private fun Step3Content(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            option.label,
+                            labelText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            option.description,
+                            descText,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -521,8 +531,15 @@ private fun Step3Content(
         Spacer(modifier = Modifier.height(4.dp))
 
         // ═══ Mức độ vận động ═══
-        Text("Mức độ vận động", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.activity_label), style = MaterialTheme.typography.titleMedium)
         activityLevelOptions.forEach { option ->
+            val labelText = when (option.value) {
+                1.2 -> stringResource(R.string.activity_sedentary)
+                1.375 -> stringResource(R.string.activity_light)
+                1.55 -> stringResource(R.string.activity_moderate)
+                1.725 -> stringResource(R.string.activity_very)
+                else -> stringResource(R.string.activity_extreme)
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -532,7 +549,7 @@ private fun Step3Content(
                     onClick = { viewModel.updateActivityLevel(option.value) }
                 )
                 Text(
-                    text = "${option.emoji} ${option.label}",
+                    text = "${option.emoji} $labelText",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -543,7 +560,7 @@ private fun Step3Content(
         uiState.metrics?.let { metrics ->
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Text(
-                text = "📊 Chỉ số của bạn",
+                text = stringResource(R.string.your_metrics_title),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
             )
 
@@ -561,7 +578,7 @@ private fun Step3Content(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         MetricItem("BMI", "${"%.1f".format(metrics.bmi)}", metrics.bmiCategory)
-                        MetricItem("BMR", "${"%.0f".format(metrics.bmr)}", "kcal")
+                        MetricItem("BMR", "${"%.0f".format(metrics.bmr)}", stringResource(R.string.kcal))
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     // TDEE & Calorie Target
@@ -569,8 +586,8 @@ private fun Step3Content(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        MetricItem("TDEE", "${"%.0f".format(metrics.tdee)}", "kcal/ngày")
-                        MetricItem("Mục tiêu", "${metrics.calorieTarget}", "kcal/ngày")
+                        MetricItem("TDEE", "${"%.0f".format(metrics.tdee)}", stringResource(R.string.kcal_per_day))
+                        MetricItem(stringResource(R.string.goal_label), "${metrics.calorieTarget}", stringResource(R.string.kcal_per_day))
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(
@@ -579,7 +596,7 @@ private fun Step3Content(
                     Spacer(modifier = Modifier.height(12.dp))
                     // Macros
                     Text(
-                        "Macros mục tiêu/ngày",
+                        stringResource(R.string.daily_macros),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )

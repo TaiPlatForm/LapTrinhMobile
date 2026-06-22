@@ -11,7 +11,14 @@
 
     <!-- ═══ Module 1: Auth ═══ -->
     <string name="login_title">Login</string>
+    <string name="login_subtitle">Smart nutrition management with AI</string>
+    <string name="or_divider">or</string>
     <string name="register_title">Register</string>
+    <string name="create_account_title">Create new account</string>
+    <string name="register_subtitle">Start your health journey</string>
+    <string name="password_valid">✅ Valid password</string>
+    <string name="password_requirement">≥6 characters, 1 uppercase, 1 digit</string>
+    <string name="confirm_password_label">Confirm Password</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
     <string name="login_button">Login</string>
@@ -19,6 +26,20 @@
     <string name="google_signin">Sign in with Google</string>
     <string name="no_account">Don\'t have an account? Register</string>
     <string name="profile_setup_title">Profile Setup</string>
+    <string name="profile_setup_step_title">Profile Setup %1$d/%2$d</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="finish">Finish</string>
+    <string name="basic_info_title">Basic Information</string>
+    <string name="basic_info_subtitle">Tell us a bit about yourself</string>
+    <string name="birth_year_display">Birth Year: %1$d (%2$d years old)</string>
+    <string name="body_metrics_title">Body Metrics</string>
+    <string name="body_metrics_subtitle">Helps calculate your nutrition needs accurately</string>
+    <string name="current_bmi">Current BMI</string>
+    <string name="goal_activity_title">Goal &amp; Activity</string>
+    <string name="your_metrics_title">Your Metrics</string>
+    <string name="kcal">kcal</string>
+    <string name="kcal_per_day">kcal/day</string>
 
     <!-- ═══ Module 2: Pantry ═══ -->
     <string name="pantry_title">Food Pantry</string>
@@ -57,6 +78,11 @@
     <string name="confirm_logout">Are you sure you want to log out of the application?</string>
     <string name="current_weight_bmi">Current: %1$.1f kg (BMI: %2$.1f)</string>
     <string name="no_weight_data">No weight log data available</string>
+    <string name="weight_logged_success">✅ Saved today\'s weight!</string>
+    <string name="today_weight_title">Today\'s Weight</string>
+    <string name="new_bmi">New BMI: %1$.2f (%2$s)</string>
+    <string name="save_today">Save Today</string>
+    <string name="start_weight_log_hint">Enter today\'s weight to start!</string>
     <string name="no_meal_data">No AI meal plans generated</string>
     <string name="calorie_target_label">Target: %1$d kcal/day</string>
     <string name="range_week">Week</string>
@@ -72,10 +98,110 @@
 
     <!-- ═══ Chung ═══ -->
     <string name="loading">Loading…</string>
+    <string name="checking_auth">Checking login status…</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="retry">Retry</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
     <string name="confirm_delete">Are you sure you want to delete?</string>
+
+    <!-- ═══ Profile ═══ -->
+    <string name="profile_title">User Profile</string>
+    <string name="btn_edit">Edit</string>
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="gender_label">Gender</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="age_label">Age</string>
+    <string name="height_label">Height</string>
+    <string name="goal_label">Goal</string>
+    <string name="activity_label">Activity Level</string>
+    <string name="health_indices">Health Metrics</string>
+    <string name="daily_macros">Daily Target Macros</string>
+    <string name="weight_log_btn">Weight Log</string>
+    <string name="display_name_label">Display Name</string>
+    <string name="birth_year_label">Birth Year: %1$d</string>
+    <string name="height_slider_label">Height: %1$d cm</string>
+    <string name="weight_slider_label">Weight: %1$.1f kg</string>
+    <string name="info_title">Information</string>
+
+    <!-- ═══ Activity & Goals ═══ -->
+    <string name="activity_sedentary">Sedentary</string>
+    <string name="activity_light">Lightly Active</string>
+    <string name="activity_moderate">Moderately Active</string>
+    <string name="activity_very">Very Active</string>
+    <string name="activity_extreme">Extremely Active</string>
+    <string name="goal_lose">Lose Fat</string>
+    <string name="goal_gain">Gain Muscle</string>
+    <string name="goal_maintain">Maintain Weight</string>
+    <string name="goal_lose_desc">TDEE - 500 kcal/day</string>
+    <string name="goal_gain_desc">TDEE + 300 kcal/day</string>
+    <string name="goal_maintain_desc">Keep TDEE constant</string>
+
+    <!-- ═══ Pantry ═══ -->
+    <string name="pantry_toolbar_title">Food Pantry</string>
+    <string name="search_placeholder">Search food…</string>
+    <string name="loading_pantry">Loading pantry…</string>
+    <string name="delete_food_title">Delete Food</string>
+    <string name="delete_food_confirm">Are you sure you want to delete \"%1$s\" from pantry?</string>
+    <string name="filter_all">All</string>
+    <string name="expiry_status_expiring">Expiring Soon</string>
+    <string name="expiry_status_expired">Expired</string>
+    <string name="no_food_found">No food found</string>
+    <string name="pantry_empty">Food pantry is empty</string>
+    <string name="filter_or_search_hint">Try changing filters or search keywords</string>
+    <string name="pantry_empty_hint">Tap + to take photo or scan barcode</string>
+    <string name="add_food_btn">Add Food</string>
+    <string name="photo_ai_title">Take AI Photo</string>
+    <string name="photo_ai_desc">Take a photo of food, AI will automatically detect name and nutrients</string>
+    <string name="barcode_scan_title">Scan Barcode</string>
+    <string name="barcode_scan_desc">Scan package barcode to search for info</string>
+    <string name="manual_entry_title">Manual Entry</string>
+    <string name="manual_entry_desc">Manually enter name, calories, protein</string>
+
+    <!-- ═══ Meal Planner ═══ -->
+    <string name="loading_meal_plan">Loading meal plan…</string>
+    <string name="no_meal_plan">No meal plan generated</string>
+    <string name="meal_plan_hint">Let AI suggest a 7-day meal plan\nbased on your pantry items and metrics</string>
+    <string name="generate_meal_plan_btn">Generate Meal Plan with AI</string>
+    <string name="regenerate_meal_plan_btn">Change to New Week Plan</string>
+    <string name="ai_generating_desc">This process takes about 10-15 seconds</string>
+    <string name="ai_detail_loading">AI is setting up recipe &amp; ingredients…</string>
+    <string name="detail_error_title">Error loading recipe</string>
+    <string name="no_meal_info">Meal information not found.</string>
+    <string name="ingredients_section">Ingredients</string>
+    <string name="recipe_section">Recipe</string>
+
+    <!-- ═══ Habits ═══ -->
+    <string name="decrease_cup">Decrease 1 cup</string>
+    <string name="increase_cup">Increase 1 cup</string>
+    <string name="cups_unit">%1$d cups</string>
+    <string name="loading_habits">Loading habits…</string>
+    <string name="habit_dashboard_title">Track Habits Today</string>
+    <string name="reminder_settings_btn">Reminder Settings</string>
+    <string name="water_today_title">Water Intake Today</string>
+    <string name="water_goal_cups">/ %1$d cups</string>
+    <string name="target_achieved">Goal achieved!</string>
+    <string name="sleep_last_night">Sleep Last Night</string>
+    <string name="vitamin_today">Vitamin Today</string>
+    <string name="vitamin_taken">Taken ✓</string>
+    <string name="vitamin_not_taken">Not taken</string>
+    <string name="reminder_settings_title">Reminder Settings</string>
+    <string name="alarm_permission_warning">Alarm permission required</string>
+    <string name="alarm_permission_desc">To remind activities accurately, you need to grant permission in system settings.</string>
+    <string name="open_settings_btn">Open settings →</string>
+    <string name="water_goal_cups_title">Water Target (cups/day)</string>
+    <string name="water_ml_per_day">= %1$d ml / day</string>
+    <string name="water_reminder_label">Water Reminder</string>
+    <string name="reminder_interval">Interval:</string>
+    <string name="reminder_interval_hours">Every %1$dh</string>
+    <string name="reminder_timeframe">Timeframe:</string>
+    <string name="reminder_start_hour">From %1$d:00</string>
+    <string name="reminder_end_hour">To %1$d:00</string>
+    <string name="vitamin_reminder_label">Vitamin Reminder</string>
+    <string name="vitamin_reminder_hour">Time:</string>
+    <string name="select_time_title">Select Time</string>
 </resources>

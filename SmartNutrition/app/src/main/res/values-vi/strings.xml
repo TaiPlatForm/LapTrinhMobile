@@ -11,7 +11,14 @@
 
     <!-- ═══ Module 1: Auth ═══ -->
     <string name="login_title">Đăng nhập</string>
+    <string name="login_subtitle">Quản lý dinh dưỡng thông minh với AI</string>
+    <string name="or_divider">hoặc</string>
     <string name="register_title">Đăng ký</string>
+    <string name="create_account_title">Tạo tài khoản mới</string>
+    <string name="register_subtitle">Bắt đầu hành trình sức khỏe của bạn</string>
+    <string name="password_valid">✅ Mật khẩu hợp lệ</string>
+    <string name="password_requirement">≥6 ký tự, 1 chữ hoa, 1 chữ số</string>
+    <string name="confirm_password_label">Xác nhận mật khẩu</string>
     <string name="email_label">Email</string>
     <string name="password_label">Mật khẩu</string>
     <string name="login_button">Đăng nhập</string>
@@ -19,6 +26,20 @@
     <string name="google_signin">Đăng nhập bằng Google</string>
     <string name="no_account">Chưa có tài khoản? Đăng ký ngay</string>
     <string name="profile_setup_title">Thiết lập thể trạng</string>
+    <string name="profile_setup_step_title">Thiết lập hồ sơ %1$d/%2$d</string>
+    <string name="back">Quay lại</string>
+    <string name="next">Tiếp theo</string>
+    <string name="finish">Hoàn tất</string>
+    <string name="basic_info_title">Thông tin cơ bản</string>
+    <string name="basic_info_subtitle">Cho chúng tôi biết đôi chút về bạn</string>
+    <string name="birth_year_display">Năm sinh: %1$d (%2$d tuổi)</string>
+    <string name="body_metrics_title">Chỉ số cơ thể</string>
+    <string name="body_metrics_subtitle">Giúp tính toán nhu cầu dinh dưỡng chính xác</string>
+    <string name="current_bmi">BMI hiện tại</string>
+    <string name="goal_activity_title">Mục tiêu &amp; Vận động</string>
+    <string name="your_metrics_title">Chỉ số của bạn</string>
+    <string name="kcal">kcal</string>
+    <string name="kcal_per_day">kcal/ngày</string>
 
     <!-- ═══ Module 2: Pantry ═══ -->
     <string name="pantry_title">Kho thực phẩm</string>
@@ -57,6 +78,11 @@
     <string name="confirm_logout">Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?</string>
     <string name="current_weight_bmi">Hiện tại: %1$.1f kg (BMI: %2$.1f)</string>
     <string name="no_weight_data">Chưa có dữ liệu cân nặng</string>
+    <string name="weight_logged_success">✅ Đã lưu cân nặng hôm nay!</string>
+    <string name="today_weight_title">Cân nặng hôm nay</string>
+    <string name="new_bmi">BMI mới: %1$.2f (%2$s)</string>
+    <string name="save_today">Lưu hôm nay</string>
+    <string name="start_weight_log_hint">Hãy nhập cân nặng hôm nay để bắt đầu!</string>
     <string name="no_meal_data">Chưa có thực đơn AI</string>
     <string name="calorie_target_label">Mục tiêu: %1$d kcal/ngày</string>
     <string name="range_week">Tuần</string>
@@ -72,10 +98,110 @@
 
     <!-- ═══ Chung ═══ -->
     <string name="loading">Đang tải…</string>
+    <string name="checking_auth">Đang kiểm tra đăng nhập…</string>
     <string name="error_generic">Đã xảy ra lỗi. Vui lòng thử lại.</string>
     <string name="retry">Thử lại</string>
     <string name="save">Lưu</string>
     <string name="cancel">Hủy</string>
     <string name="delete">Xóa</string>
+    <string name="ok">OK</string>
+    <string name="close">Đóng</string>
     <string name="confirm_delete">Bạn có chắc chắn muốn xóa?</string>
+
+    <!-- ═══ Profile ═══ -->
+    <string name="profile_title">Hồ sơ cá nhân</string>
+    <string name="btn_edit">Sửa</string>
+    <string name="edit_profile_title">Chỉnh sửa hồ sơ</string>
+    <string name="gender_label">Giới tính</string>
+    <string name="gender_male">Nam</string>
+    <string name="gender_female">Nữ</string>
+    <string name="age_label">Tuổi</string>
+    <string name="height_label">Chiều cao</string>
+    <string name="goal_label">Mục tiêu</string>
+    <string name="activity_label">Vận động</string>
+    <string name="health_indices">Chỉ số sức khỏe</string>
+    <string name="daily_macros">Macros mục tiêu/ngày</string>
+    <string name="weight_log_btn">Nhật ký cân nặng</string>
+    <string name="display_name_label">Tên hiển thị</string>
+    <string name="birth_year_label">Năm sinh: %1$d</string>
+    <string name="height_slider_label">Chiều cao: %1$d cm</string>
+    <string name="weight_slider_label">Cân nặng: %1$.1f kg</string>
+    <string name="info_title">Thông tin</string>
+
+    <!-- ═══ Activity & Goals ═══ -->
+    <string name="activity_sedentary">Ít vận động</string>
+    <string name="activity_light">Vận động nhẹ</string>
+    <string name="activity_moderate">Vận động vừa</string>
+    <string name="activity_very">Vận động nhiều</string>
+    <string name="activity_extreme">Vận động rất nhiều</string>
+    <string name="goal_lose">Giảm mỡ</string>
+    <string name="goal_gain">Tăng cơ</string>
+    <string name="goal_maintain">Duy trì</string>
+    <string name="goal_lose_desc">TDEE - 500 kcal/ngày</string>
+    <string name="goal_gain_desc">TDEE + 300 kcal/ngày</string>
+    <string name="goal_maintain_desc">Giữ nguyên TDEE</string>
+
+    <!-- ═══ Pantry ═══ -->
+    <string name="pantry_toolbar_title">Kho thực phẩm</string>
+    <string name="search_placeholder">Tìm kiếm thực phẩm…</string>
+    <string name="loading_pantry">Đang tải kho thực phẩm…</string>
+    <string name="delete_food_title">Xóa thực phẩm</string>
+    <string name="delete_food_confirm">Bạn có chắc muốn xóa \"%1$s\" khỏi kho?</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="expiry_status_expiring">Sắp hết hạn</string>
+    <string name="expiry_status_expired">Hết hạn</string>
+    <string name="no_food_found">Không tìm thấy thực phẩm</string>
+    <string name="pantry_empty">Kho thực phẩm trống</string>
+    <string name="filter_or_search_hint">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</string>
+    <string name="pantry_empty_hint">Bấm + để chụp ảnh hoặc quét barcode thực phẩm</string>
+    <string name="add_food_btn">Thêm thực phẩm</string>
+    <string name="photo_ai_title">📸 Chụp ảnh AI nhận diện</string>
+    <string name="photo_ai_desc">Chụp ảnh thực phẩm, AI tự động nhận diện tên và dinh dưỡng</string>
+    <string name="barcode_scan_title">Quét mã vạch</string>
+    <string name="barcode_scan_desc">Quét barcode sản phẩm đóng hộp để tra cứu thông tin</string>
+    <string name="manual_entry_title">Nhập thủ công</string>
+    <string name="manual_entry_desc">Tự nhập tên, calo, protein cho thực phẩm</string>
+
+    <!-- ═══ Meal Planner ═══ -->
+    <string name="loading_meal_plan">Đang tải thực đơn…</string>
+    <string name="no_meal_plan">Chưa có thực đơn</string>
+    <string name="meal_plan_hint">Để AI gợi ý thực đơn 7 ngày\ndựa trên kho thực phẩm và chỉ số dinh dưỡng của bạn</string>
+    <string name="generate_meal_plan_btn">Lên thực đơn bằng AI</string>
+    <string name="regenerate_meal_plan_btn">Đổi thực đơn tuần mới</string>
+    <string name="ai_generating_desc">Quá trình này mất khoảng 10-15 giây</string>
+    <string name="ai_detail_loading">AI đang thiết lập công thức &amp; nguyên liệu…</string>
+    <string name="detail_error_title">Lỗi tải công thức</string>
+    <string name="no_meal_info">Không tìm thấy thông tin bữa ăn.</string>
+    <string name="ingredients_section">Nguyên liệu</string>
+    <string name="recipe_section">Cách nấu</string>
+
+    <!-- ═══ Habits ═══ -->
+    <string name="decrease_cup">Giảm 1 cốc</string>
+    <string name="increase_cup">Thêm 1 cốc</string>
+    <string name="cups_unit">%1$d cốc</string>
+    <string name="loading_habits">Đang tải thói quen…</string>
+    <string name="habit_dashboard_title">Theo dõi thói quen hôm nay</string>
+    <string name="reminder_settings_btn">Cài đặt nhắc nhở</string>
+    <string name="water_today_title">Lượng nước hôm nay</string>
+    <string name="water_goal_cups">/ %1$d cốc</string>
+    <string name="target_achieved">Đạt mục tiêu!</string>
+    <string name="sleep_last_night">Giờ ngủ đêm qua</string>
+    <string name="vitamin_today">Vitamin hôm nay</string>
+    <string name="vitamin_taken">Đã uống ✓</string>
+    <string name="vitamin_not_taken">Chưa uống</string>
+    <string name="reminder_settings_title">Cài đặt nhắc nhở</string>
+    <string name="alarm_permission_warning">Cần cấp quyền đặt báo thức</string>
+    <string name="alarm_permission_desc">Để nhắc nhở hoạt động chính xác, bạn cần cấp quyền trong cài đặt hệ thống.</string>
+    <string name="open_settings_btn">Mở cài đặt →</string>
+    <string name="water_goal_cups_title">Mục tiêu nước (cốc/ngày)</string>
+    <string name="water_ml_per_day">= %1$d ml / ngày</string>
+    <string name="water_reminder_label">Nhắc uống nước</string>
+    <string name="reminder_interval">Chu kỳ nhắc:</string>
+    <string name="reminder_interval_hours">Mỗi %1$dh</string>
+    <string name="reminder_timeframe">Khung giờ nhắc:</string>
+    <string name="reminder_start_hour">Từ %1$d:00</string>
+    <string name="reminder_end_hour">Đến %1$d:00</string>
+    <string name="vitamin_reminder_label">Nhắc uống vitamin</string>
+    <string name="vitamin_reminder_hour">Giờ nhắc:</string>
+    <string name="select_time_title">Chọn giờ</string>
 </resources>

@@ -15,12 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.team.smartnutrition.R
 import com.team.smartnutrition.common.components.ErrorCard
 import com.team.smartnutrition.common.components.LoadingScreen
 import com.team.smartnutrition.navigation.Screen
@@ -28,7 +30,6 @@ import com.team.smartnutrition.pantry.model.PantryItem
 import com.team.smartnutrition.pantry.util.ExpiryStatus
 import com.team.smartnutrition.pantry.util.calculateExpiryStatus
 import com.team.smartnutrition.pantry.util.daysUntilExpiry
-import com.team.smartnutrition.pantry.util.expiryDisplayText
 import com.team.smartnutrition.pantry.viewmodel.ExpiryFilter
 import com.team.smartnutrition.pantry.viewmodel.PantryListViewModel
 
@@ -60,7 +61,7 @@ fun PantryListScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Thêm thực phẩm")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_food_btn))
             }
         }
     ) { paddingValues ->
@@ -71,7 +72,7 @@ fun PantryListScreen(
         ) {
             // ═══ HEADER ═══
             Text(
-                text = "🏪 Kho thực phẩm",
+                text = "🏪 " + stringResource(R.string.pantry_toolbar_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -81,14 +82,14 @@ fun PantryListScreen(
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.setSearchQuery(it) },
-                placeholder = { Text("Tìm kiếm thực phẩm...") },
+                placeholder = { Text(stringResource(R.string.search_placeholder)) },
                 leadingIcon = {
-                    Icon(Icons.Outlined.Search, contentDescription = "Tìm kiếm")
+                    Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.search_placeholder))
                 },
                 trailingIcon = {
                     if (uiState.searchQuery.isNotBlank()) {
                         IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                            Icon(Icons.Filled.Clear, contentDescription = "Xóa")
+                            Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.delete))
                         }
                     }
                 },
@@ -109,10 +110,15 @@ fun PantryListScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ExpiryFilter.entries.forEach { filter ->
+                    val filterLabel = when (filter) {
+                        ExpiryFilter.ALL -> stringResource(R.string.filter_all)
+                        ExpiryFilter.EXPIRING -> stringResource(R.string.expiry_status_expiring)
+                        ExpiryFilter.EXPIRED -> stringResource(R.string.expiry_status_expired)
+                    }
                     FilterChip(
                         selected = uiState.selectedFilter == filter,
                         onClick = { viewModel.setFilter(filter) },
-                        label = { Text(filter.label) },
+                        label = { Text(filterLabel) },
                         leadingIcon = if (uiState.selectedFilter == filter) {
                             { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(18.dp)) }
                         } else null
@@ -125,7 +131,7 @@ fun PantryListScreen(
             // ═══ CONTENT ═══
             when {
                 uiState.isLoading -> {
-                    LoadingScreen(message = "Đang tải kho thực phẩm...")
+                    LoadingScreen(message = stringResource(R.string.loading_pantry))
                 }
                 uiState.errorMessage != null -> {
                     ErrorCard(
@@ -197,9 +203,9 @@ fun PantryListScreen(
     if (uiState.showDeleteDialog && uiState.itemToDelete != null) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteConfirm() },
-            title = { Text("Xóa thực phẩm") },
+            title = { Text(stringResource(R.string.delete_food_title)) },
             text = {
-                Text("Bạn có chắc muốn xóa \"${uiState.itemToDelete!!.name}\" khỏi kho?")
+                Text(stringResource(R.string.delete_food_confirm, uiState.itemToDelete!!.name))
             },
             confirmButton = {
                 TextButton(
@@ -207,10 +213,10 @@ fun PantryListScreen(
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
-                ) { Text("Xóa") }
+                ) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissDeleteConfirm() }) { Text("Hủy") }
+                TextButton(onClick = { viewModel.dismissDeleteConfirm() }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -255,7 +261,7 @@ private fun SwipeToDismissItem(
             ) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "Xóa",
+                    contentDescription = stringResource(R.string.delete),
                     tint = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
@@ -362,7 +368,7 @@ fun StatusBadge(
             text = when (status) {
                 ExpiryStatus.FRESH -> "${daysLeft}d"
                 ExpiryStatus.EXPIRING -> "${daysLeft}d ⚠️"
-                ExpiryStatus.EXPIRED -> "Hết hạn"
+                ExpiryStatus.EXPIRED -> stringResource(R.string.expiry_status_expired)
             },
             style = MaterialTheme.typography.labelSmall,
             color = Color.White,
@@ -392,15 +398,15 @@ private fun EmptyPantryState(isFiltered: Boolean) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = if (isFiltered) "Không tìm thấy thực phẩm"
-                else "Kho thực phẩm trống",
+                text = if (isFiltered) stringResource(R.string.no_food_found)
+                else stringResource(R.string.pantry_empty),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (isFiltered) "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
-                else "Bấm + để chụp ảnh hoặc quét barcode thực phẩm",
+                text = if (isFiltered) stringResource(R.string.filter_or_search_hint)
+                else stringResource(R.string.pantry_empty_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -424,7 +430,7 @@ private fun AddFoodBottomSheet(
             .padding(24.dp)
     ) {
         Text(
-            text = "Thêm thực phẩm",
+            text = stringResource(R.string.add_food_btn),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -433,8 +439,8 @@ private fun AddFoodBottomSheet(
         // Option 1: Camera AI
         AddOptionItem(
             icon = Icons.Filled.CameraAlt,
-            title = "📸 Chụp ảnh AI nhận diện",
-            description = "Chụp ảnh thực phẩm, AI tự động nhận diện tên và dinh dưỡng",
+            title = stringResource(R.string.photo_ai_title),
+            description = stringResource(R.string.photo_ai_desc),
             onClick = onCameraClick
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -442,8 +448,8 @@ private fun AddFoodBottomSheet(
         // Option 2: Barcode
         AddOptionItem(
             icon = Icons.Filled.QrCodeScanner,
-            title = "📱 Quét mã vạch",
-            description = "Quét barcode sản phẩm đóng hộp để tra cứu thông tin",
+            title = stringResource(R.string.barcode_scan_title),
+            description = stringResource(R.string.barcode_scan_desc),
             onClick = onBarcodeClick
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -451,8 +457,8 @@ private fun AddFoodBottomSheet(
         // Option 3: Manual
         AddOptionItem(
             icon = Icons.Filled.Edit,
-            title = "✏️ Nhập thủ công",
-            description = "Tự nhập tên, calo, protein cho thực phẩm",
+            title = stringResource(R.string.manual_entry_title),
+            description = stringResource(R.string.manual_entry_desc),
             onClick = onManualClick
         )
 
