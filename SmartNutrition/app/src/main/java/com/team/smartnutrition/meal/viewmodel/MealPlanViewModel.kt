@@ -354,16 +354,24 @@ class MealPlanViewModel : ViewModel() {
      */
     fun loadMealDetail(dayIndex: Int, mealType: String) {
         val uid = mealRepository.currentUid ?: return
-        val currentPlan = _uiState.value.mealPlan ?: return
-        val day = currentPlan.days.getOrNull(dayIndex) ?: return
-        val meal = day.meals[mealType] ?: return
-
-        // Đã có chi tiết -> không gọi AI nữa
-        if (meal.ingredients.isNotEmpty() && meal.recipe.isNotEmpty()) {
-            return
-        }
 
         viewModelScope.launch {
+            // Đợi mealPlan được tải xong nếu đang trong trạng thái loading
+            var elapsed = 0L
+            while (_uiState.value.mealPlan == null && _uiState.value.isLoading && elapsed < 6000L) {
+                delay(100)
+                elapsed += 100
+            }
+
+            val currentPlan = _uiState.value.mealPlan ?: return@launch
+            val day = currentPlan.days.getOrNull(dayIndex) ?: return@launch
+            val meal = day.meals[mealType] ?: return@launch
+
+            // Đã có chi tiết -> không gọi AI nữa
+            if (meal.ingredients.isNotEmpty() && meal.recipe.isNotEmpty()) {
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     isGeneratingDetail = true,

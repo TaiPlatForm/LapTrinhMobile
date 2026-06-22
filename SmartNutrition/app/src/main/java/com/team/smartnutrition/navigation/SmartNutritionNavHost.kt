@@ -23,6 +23,9 @@ import com.team.smartnutrition.pantry.CameraCaptureScreen
 import com.team.smartnutrition.pantry.FoodDetailScreen
 import com.team.smartnutrition.pantry.FoodResultScreen
 import com.team.smartnutrition.pantry.PantryListScreen
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
 
 /**
  * ═══════════════════════════════════════════
@@ -101,8 +104,9 @@ fun SmartNutritionNavHost(
         // ═══════════════════════════════════════
         // TAB 3: THỰC ĐƠN AI (Module 3 - TV3)
         // ═══════════════════════════════════════
-        composable(Screen.MealPlan.route) {
-            MealPlanWeekScreen(navController = navController)
+        composable(Screen.MealPlan.route) { backStackEntry ->
+            val mealViewModel: MealPlanViewModel = viewModel(backStackEntry)
+            MealPlanWeekScreen(navController = navController, viewModel = mealViewModel)
         }
         composable(
             route = Screen.MealDetail.route,
@@ -113,10 +117,18 @@ fun SmartNutritionNavHost(
         ) { backStackEntry ->
             val dayIndex = backStackEntry.arguments?.getInt("dayIndex") ?: 0
             val mealType = backStackEntry.arguments?.getString("mealType") ?: ""
+            
+            // Lấy NavBackStackEntry của màn hình cha (MealPlan) để dùng chung ViewModel
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MealPlan.route)
+            }
+            val mealViewModel: MealPlanViewModel = viewModel(parentEntry)
+            
             MealDetailScreen(
                 navController = navController,
                 dayIndex = dayIndex,
-                mealType = mealType
+                mealType = mealType,
+                viewModel = mealViewModel
             )
         }
 
