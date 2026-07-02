@@ -1,4 +1,4 @@
-package com.team.smartnutrition.pantry
+﻿package com.team.smartnutrition.pantry
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -41,9 +41,7 @@ import com.team.smartnutrition.navigation.Screen
 import com.team.smartnutrition.pantry.viewmodel.CameraCaptureViewModel
 
 /**
- * ═══════════════════════════════════════════
- * MODULE 2 - TV2: CHỤP ẢNH THỰC PHẨM
- * ═══════════════════════════════════════════
+ * Module 2 - TV2: Chụp ảnh thực phẩm
  *
  * CameraX Preview toàn màn hình + nút chụp.
  * Sau khi chụp → gửi Gemini Vision API → navigate FoodResult.
@@ -57,14 +55,15 @@ fun CameraCaptureScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsState()
 
-    // ImageCapture use case
+    // Khởi tạo cấu hình ImageCapture 
     val imageCapture = remember {
         ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            // Ưu tiên giảm thiểu tối đa độ trễ khi nhấn nút chụp.
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY) 
             .build()
     }
 
-    // ═══ PERMISSION HANDLING ═══
+    // Xử lý quyền truy cập camera
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -83,7 +82,7 @@ fun CameraCaptureScreen(
         }
     }
 
-    // ═══ NAVIGATION EFFECT ═══
+    // điều hướng màn hình 
     LaunchedEffect(uiState.navigateToResult) {
         if (uiState.navigateToResult && uiState.resultJson != null) {
             navController.currentBackStackEntry?.savedStateHandle?.apply {
@@ -95,9 +94,9 @@ fun CameraCaptureScreen(
         }
     }
 
-    // ═══ UI ═══
+    // Giao diện UI camera
     if (!uiState.hasCameraPermission) {
-        // Permission denied state
+        // Trạng thái bị từ chối quyền truy cập
         PermissionDeniedScreen(
             onBack = { navController.popBackStack() },
             onRequestPermission = {
@@ -125,7 +124,6 @@ fun CameraCaptureScreen(
                         imageCapture
                     )
                 } catch (_: Exception) {
-                    // Camera binding failed
                 }
             }
 
@@ -134,7 +132,7 @@ fun CameraCaptureScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Top bar overlay
+            // giao diện Thanh công cụ phía trên
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,28 +149,26 @@ fun CameraCaptureScreen(
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
                 }
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f)) // Đẩy text vào giữa
                 Text(
                     text = "Chụp ảnh thực phẩm",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                // Placeholder to balance layout
-                Spacer(modifier = Modifier.size(48.dp))
+                Spacer(modifier = Modifier.weight(1f)) // Đẩy spacer bên phải để cân bằng
+                Spacer(modifier = Modifier.size(48.dp)) // Tạo khoảng trống giả để giữ Text ở giữa
             }
 
             // Bottom controls
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.BottomCenter) // Đặt cố định ở đáy màn hình
                     .padding(bottom = 48.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Spacer left
                 Spacer(modifier = Modifier.size(56.dp))
 
                 // Capture button
@@ -200,6 +196,7 @@ fun CameraCaptureScreen(
 
                 // Barcode button
                 IconButton(
+                    // Chuyển sang màn hình quét mã vạch
                     onClick = { navController.navigate(Screen.BarcodeScan.route) },
                     modifier = Modifier.size(56.dp),
                     colors = IconButtonDefaults.iconButtonColors(
@@ -238,7 +235,7 @@ fun CameraCaptureScreen(
                 }
             }
 
-            // Error snackbar
+            // Màu báo lỗi (Error) snackbar
             if (uiState.errorMessage != null) {
                 Snackbar(
                     modifier = Modifier

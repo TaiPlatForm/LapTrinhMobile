@@ -1,4 +1,4 @@
-package com.team.smartnutrition.pantry.data
+﻿package com.team.smartnutrition.pantry.data
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,9 +12,7 @@ import com.team.smartnutrition.pantry.model.FoodRecognitionResult
 import java.io.ByteArrayOutputStream
 
 /**
- * ═══════════════════════════════════════════
- * GEMINI SERVICE - Gọi Gemini Vision API
- * ═══════════════════════════════════════════
+ * Gemini Service - Gọi Gemini Vision API
  *
  * Nhận diện thực phẩm từ ảnh chụp bằng Gemini Vision API.
  * Pipeline: Bitmap → Resize → Gemini API → JSON → FoodRecognitionResult
@@ -85,7 +83,7 @@ Quy tắc:
 
         Log.d(TAG, "Gemini response: $responseText")
 
-        // 3. Parse JSON (strip markdown wrapper nếu có)
+        // 3. Phân tách chuỗi văn bản thành Object dữ liệu
         return parseResponse(responseText)
     }
 

@@ -1,4 +1,4 @@
-package com.team.smartnutrition.analytics.data
+﻿package com.team.smartnutrition.analytics.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,7 +16,7 @@ class AnalyticsRepository {
     val currentUid: String?
         get() = FirebaseAuth.getInstance().currentUser?.uid
 
-    // ═══ WEIGHT LOG (Module 1) ═══
+    // WEIGHT LOG (Module 1)
     
     /**
      * Đọc lịch sử cân nặng, sắp xếp theo ngày tăng dần (cũ → mới)
@@ -27,28 +27,29 @@ class AnalyticsRepository {
             withTimeout(3000) {
                 firestore.collection("users").document(uid)
                     .collection("weightLog")
-                    .orderBy("loggedAt", Query.Direction.ASCENDING)
+                    .orderBy("loggedAt", Query.Direction.DESCENDING)
                     .limit(limit)
                     .get().await()
             }
         } catch (e: Exception) {
             firestore.collection("users").document(uid)
                 .collection("weightLog")
-                .orderBy("loggedAt", Query.Direction.ASCENDING)
+                .orderBy("loggedAt", Query.Direction.DESCENDING)
                 .limit(limit)
                 .get(Source.CACHE).await()
         }
 
-        return snapshot.documents.map { doc ->
+        val entries = snapshot.documents.map { doc ->
             WeightChartEntry(
                 date = doc.id,
                 weightKg = (doc.getDouble("weightKg") ?: 0.0).toFloat(),
                 bmi = (doc.getDouble("bmi") ?: 0.0).toFloat()
             )
         }
+        return entries.reversed()
     }
 
-    // ═══ MEAL PLANS (Module 3) ═══
+    // MEAL PLANS (Module 3)
     
     /**
      * Đọc mealPlan theo weekId → extract daily calories.
@@ -82,7 +83,7 @@ class AnalyticsRepository {
         }
     }
 
-    // ═══ USER PROFILE (Module 1) ═══
+    // USER PROFILE (Module 1)
     
     suspend fun getUserProfile(uid: String): User? {
         val doc = try {
@@ -96,7 +97,7 @@ class AnalyticsRepository {
         return doc.toObject(User::class.java)?.copy(uid = uid)
     }
 
-    // ═══ HELPERS ═══
+    // HELPERS
     
     /** "Thứ Hai" → "T2", "Chủ Nhật" → "CN" */
     private fun shortenDayLabel(label: String): String {

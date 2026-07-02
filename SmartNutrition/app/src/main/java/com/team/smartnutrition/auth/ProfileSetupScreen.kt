@@ -1,4 +1,4 @@
-package com.team.smartnutrition.auth
+﻿package com.team.smartnutrition.auth
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
@@ -20,15 +20,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.viewmodel.*
 import com.team.smartnutrition.navigation.Screen
 import java.time.Year
 
 /**
- * ═══════════════════════════════════════════
  * MODULE 1 - TV1: THIẾT LẬP THỂ TRẠNG
- * ═══════════════════════════════════════════
  *
  * Multi-step wizard 3 bước:
  * Step 1: Giới tính + Năm sinh + Tên hiển thị
@@ -77,7 +78,7 @@ fun ProfileSetupScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // ═══ Progress Bar ═══
+            // Progress Bar
             LinearProgressIndicator(
                 progress = { uiState.currentStep.toFloat() / uiState.totalSteps },
                 modifier = Modifier
@@ -87,7 +88,7 @@ fun ProfileSetupScreen(
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
 
-            // ═══ Step Content ═══
+            // Step Content
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -115,7 +116,7 @@ fun ProfileSetupScreen(
                 }
             }
 
-            // ═══ Bottom Buttons ═══
+            // Bottom Buttons
             Surface(
                 tonalElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -189,10 +190,7 @@ fun ProfileSetupScreen(
         }
     }
 }
-
-// ═══════════════════════════════════════════
 // STEP 1: Giới tính + Năm sinh + Tên
-// ═══════════════════════════════════════════
 @Composable
 private fun Step1Content(
     uiState: ProfileSetupUiState,
@@ -210,7 +208,7 @@ private fun Step1Content(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // ═══ Tên hiển thị ═══
+        // Tên hiển thị
         OutlinedTextField(
             value = uiState.displayName,
             onValueChange = { viewModel.updateDisplayName(it) },
@@ -221,7 +219,7 @@ private fun Step1Content(
             singleLine = true
         )
 
-        // ═══ Giới tính ═══
+        // Giới tính
         Text(
             text = stringResource(R.string.gender_label),
             style = MaterialTheme.typography.titleMedium
@@ -246,7 +244,7 @@ private fun Step1Content(
             )
         }
 
-        // ═══ Năm sinh ═══
+        // Năm sinh
         Text(
             text = stringResource(R.string.birth_year_display, uiState.birthYear, Year.now().value - uiState.birthYear),
             style = MaterialTheme.typography.titleMedium
@@ -267,6 +265,35 @@ private fun Step1Content(
             Text("2015", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        
+        var birthYearInputText by remember { mutableStateOf(uiState.birthYear.toString()) }
+        LaunchedEffect(uiState.birthYear) {
+            if (birthYearInputText.toIntOrNull() != uiState.birthYear) {
+                birthYearInputText = uiState.birthYear.toString()
+            }
+        }
+        
+        OutlinedTextField(
+            value = birthYearInputText,
+            onValueChange = { newValue ->
+                if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                    birthYearInputText = newValue
+                    newValue.toIntOrNull()?.let { year ->
+                        if (year in 1940..2015) {
+                            viewModel.updateBirthYear(year)
+                        }
+                    }
+                }
+            },
+            label = { Text(stringResource(R.string.birth_year_label, uiState.birthYear).substringBefore(":") + " (1940 - 2015)") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
     }
 }
 
@@ -305,15 +332,27 @@ private fun GenderCard(
         }
     }
 }
-
-// ═══════════════════════════════════════════
 // STEP 2: Chiều cao + Cân nặng
-// ═══════════════════════════════════════════
 @Composable
 private fun Step2Content(
     uiState: ProfileSetupUiState,
     viewModel: ProfileSetupViewModel
 ) {
+    var heightInputText by remember { mutableStateOf(uiState.heightCm.toString()) }
+    LaunchedEffect(uiState.heightCm) {
+        if (heightInputText.toIntOrNull() != uiState.heightCm) {
+            heightInputText = uiState.heightCm.toString()
+        }
+    }
+
+    var weightInputText by remember { mutableStateOf("%.1f".format(uiState.weightKg)) }
+    LaunchedEffect(uiState.weightKg) {
+        val currentFloat = weightInputText.toDoubleOrNull() ?: 0.0
+        if (Math.abs(currentFloat - uiState.weightKg) > 0.05) {
+            weightInputText = "%.1f".format(uiState.weightKg)
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Text(
             text = stringResource(R.string.body_metrics_title),
@@ -325,7 +364,7 @@ private fun Step2Content(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // ═══ Chiều cao ═══
+        // Chiều cao
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -364,10 +403,37 @@ private fun Step2Content(
                     Text("250 cm", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = heightInputText,
+                    onValueChange = { newValue ->
+                        if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                            heightInputText = newValue
+                            newValue.toIntOrNull()?.let { height ->
+                                if (height in 100..250) {
+                                    viewModel.updateHeightCm(height)
+                                }
+                            }
+                        }
+                    },
+                    label = { Text(stringResource(R.string.enter_height_manual)) },
+                    suffix = { Text("cm") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
+                )
             }
         }
 
-        // ═══ Cân nặng ═══
+        // Cân nặng
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -410,10 +476,38 @@ private fun Step2Content(
                     Text("200 kg", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = weightInputText,
+                    onValueChange = { newValue ->
+                        val normalized = newValue.replace(',', '.')
+                        if (normalized.isEmpty() || normalized.toDoubleOrNull() != null || normalized == "." || normalized.endsWith(".")) {
+                            weightInputText = newValue
+                            normalized.toDoubleOrNull()?.let { weight ->
+                                if (weight >= 30.0 && weight <= 200.0) {
+                                    viewModel.updateWeightKg(weight)
+                                }
+                            }
+                        }
+                    },
+                    label = { Text(stringResource(R.string.enter_weight_manual)) },
+                    suffix = { Text("kg") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Done
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
+                )
             }
         }
 
-        // ═══ Preview BMI ═══
+        // Preview BMI
         val bmi = com.team.smartnutrition.auth.util.HealthCalculator.calculateBmi(
             uiState.weightKg, uiState.heightCm
         )
@@ -456,10 +550,7 @@ private fun Step2Content(
         }
     }
 }
-
-// ═══════════════════════════════════════════
 // STEP 3: Mục tiêu + Vận động + Kết quả
-// ═══════════════════════════════════════════
 @Composable
 private fun Step3Content(
     uiState: ProfileSetupUiState,
@@ -471,7 +562,7 @@ private fun Step3Content(
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
 
-        // ═══ Mục tiêu sức khỏe ═══
+        // Mục tiêu sức khỏe
         Text(stringResource(R.string.goal_label), style = MaterialTheme.typography.titleMedium)
         goalOptions.forEach { option ->
             val labelText = when (option.value) {
@@ -530,7 +621,7 @@ private fun Step3Content(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // ═══ Mức độ vận động ═══
+        // Mức độ vận động
         Text(stringResource(R.string.activity_label), style = MaterialTheme.typography.titleMedium)
         activityLevelOptions.forEach { option ->
             val labelText = when (option.value) {
@@ -556,7 +647,7 @@ private fun Step3Content(
             }
         }
 
-        // ═══ Kết quả tính toán ═══
+        // Kết quả tính toán
         uiState.metrics?.let { metrics ->
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Text(

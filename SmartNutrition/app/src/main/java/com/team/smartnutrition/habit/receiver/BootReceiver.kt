@@ -1,4 +1,4 @@
-package com.team.smartnutrition.habit.receiver
+﻿package com.team.smartnutrition.habit.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,9 +8,7 @@ import com.team.smartnutrition.habit.data.ReminderPrefs
 import com.team.smartnutrition.habit.util.AlarmScheduler
 
 /**
- * ═══════════════════════════════════════════
  * BOOT RECEIVER
- * ═══════════════════════════════════════════
  *
  * Được kích hoạt khi thiết bị khởi động lại (BOOT_COMPLETED).
  * Mọi alarm bị hủy khi restart → BootReceiver đọc SharedPreferences
@@ -52,6 +50,24 @@ class BootReceiver : BroadcastReceiver() {
                 prefs.vitaminMinute
             )
             Log.d("BootReceiver", "Vitamin alarm restored: ${prefs.vitaminHour}:${String.format("%02d", prefs.vitaminMinute)}")
+        }
+
+        // Khôi phục các custom reminders tùy chỉnh
+        prefs.customReminders.forEach { reminder ->
+            if (reminder.enabled) {
+                AlarmScheduler.scheduleCustomReminderAlarm(context, reminder)
+                Log.d("BootReceiver", "Custom reminder restored: ${reminder.name} at ${reminder.hour}:${String.format("%02d", reminder.minute)}")
+            }
+        }
+
+        // Khôi phục báo thức đi ngủ
+        if (prefs.sleepReminderEnabled) {
+            AlarmScheduler.scheduleSleepAlarm(
+                context,
+                prefs.bedtimeHour,
+                prefs.bedtimeMinute
+            )
+            Log.d("BootReceiver", "Bedtime alarm restored: ${prefs.bedtimeHour}:${prefs.bedtimeMinute}")
         }
     }
 }

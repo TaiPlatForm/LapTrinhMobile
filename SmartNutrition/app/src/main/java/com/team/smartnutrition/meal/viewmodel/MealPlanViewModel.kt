@@ -1,4 +1,4 @@
-package com.team.smartnutrition.meal.viewmodel
+﻿package com.team.smartnutrition.meal.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,27 +18,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.team.smartnutrition.R
 
 /**
- * ═══════════════════════════════════════════
  * MEAL PLAN UI STATE
- * ═══════════════════════════════════════════
  */
 data class MealPlanUiState(
     val mealPlan: MealPlan? = null,          // Plan hiện tại (null = chưa generate)
     val selectedDayIndex: Int = 0,            // Tab đang chọn (0-6)
     val isLoading: Boolean = true,            // Loading ban đầu (đọc Firestore)
     val isGenerating: Boolean = false,        // Đang gọi Gemini AI
-    val loadingMessage: String = "",          // Câu chữ vui cho loading dialog
+    val loadingMessageResId: Int = R.string.loading, // ID câu chữ vui cho loading dialog
+    val loadingMessageArgs: List<String> = emptyList(), // Tham số định dạng cho câu chữ loading
     val errorMessage: String? = null,         // Lỗi hiển thị cho user
     val isGeneratingDetail: Boolean = false,  // Đang gọi AI tải chi tiết nguyên liệu + cách nấu cho 1 món
     val detailErrorMessage: String? = null    // Lỗi khi tải chi tiết
 )
 
 /**
- * ═══════════════════════════════════════════
  * MEAL PLAN VIEW MODEL
- * ═══════════════════════════════════════════
  *
  * Shared ViewModel cho MealPlanWeekScreen + MealDetailScreen.
  *
@@ -63,24 +61,20 @@ class MealPlanViewModel : ViewModel() {
     val uiState: StateFlow<MealPlanUiState> = _uiState.asStateFlow()
 
     companion object {
-        /** Danh sách câu loading vui vẻ, xoay vòng mỗi 2.5s */
-        private val loadingMessages = listOf(
-            "🤖 AI đang nghiên cứu dinh dưỡng cho bạn...",
-            "🥗 Đang chọn nguyên liệu tươi nhất...",
-            "👨‍🍳 Đang phối hợp thực đơn 7 ngày...",
-            "📊 Đang cân đối calo và protein...",
-            "🍲 Sắp xong rồi, chờ chút nhé..."
+        /** Danh sách ID câu loading vui vẻ, xoay vòng mỗi 2.5s */
+        private val loadingMessageResIds = listOf(
+            R.string.loading_msg_nutrition,
+            R.string.loading_msg_ingredients,
+            R.string.loading_msg_plan_7days,
+            R.string.loading_msg_balance,
+            R.string.loading_msg_almost_done
         )
     }
 
     init {
         loadCurrentPlan()
     }
-
-    // ═══════════════════════════════════════════════════
     // PUBLIC ACTIONS
-    // ═══════════════════════════════════════════════════
-
     /**
      * Khởi tạo hoặc tạo lại thực đơn cho ngày hiện tại đang chọn.
      * Nếu chưa có MealPlan (null) -> khởi tạo khung 7 ngày và tạo thực đơn cho ngày hôm nay.
@@ -126,11 +120,16 @@ class MealPlanViewModel : ViewModel() {
             )
         }
 
-        // Lưu skeleton vào local cache & Firestore
-        mealRepository.saveMealPlan(uid, newPlan)
-
-        // Gọi AI sinh thực đơn cho ngày hôm nay
-        generateMealPlanForDay(todayIndex)
+        viewModelScope.launch {
+            try {
+                // Lưu skeleton vào local cache & Firestore
+                mealRepository.saveMealPlan(uid, newPlan)
+            } catch (e: Exception) {
+                android.util.Log.e("MealPlanViewModel", "Lỗi lưu skeleton: ${e.message}", e)
+            }
+            // Gọi AI sinh thực đơn cho ngày hôm nay
+            generateMealPlanForDay(todayIndex)
+        }
     }
 
     /**
@@ -145,24 +144,30 @@ class MealPlanViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     isGenerating = true,
-                    loadingMessage = "🤖 AI đang thiết lập thực đơn cho $dayLabel...",
+                    loadingMessageResId = R.string.loading_msg_setup_day,
+                    loadingMessageArgs = listOf(dayLabel),
                     errorMessage = null
                 )
             }
 
             // Xoay vòng loading messages mỗi 2.5s để UX sinh động
             val messageJob = launch {
-                val dailyLoadingMessages = listOf(
-                    "🤖 AI đang phân tích thể trạng của bạn...",
-                    "🥗 Đang tìm món ăn phù hợp cho $dayLabel...",
-                    "📊 Đang cân đối calo và protein...",
-                    "🍲 Sắp xong rồi, chờ chút nhé..."
+                val dailyLoadingMessageResIds = listOf(
+                    R.string.loading_msg_profile,
+                    R.string.loading_msg_day_food,
+                    R.string.loading_msg_balance,
+                    R.string.loading_msg_almost_done
                 )
                 var msgIdx = 1
                 while (true) {
                     delay(2500)
+                    val resId = dailyLoadingMessageResIds[msgIdx % dailyLoadingMessageResIds.size]
+                    val args = if (resId == R.string.loading_msg_day_food) listOf(dayLabel) else emptyList()
                     _uiState.update {
-                        it.copy(loadingMessage = dailyLoadingMessages[msgIdx % dailyLoadingMessages.size])
+                        it.copy(
+                            loadingMessageResId = resId,
+                            loadingMessageArgs = args
+                        )
                     }
                     msgIdx++
                 }
@@ -252,7 +257,8 @@ class MealPlanViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     isGenerating = true,
-                    loadingMessage = "🔄 AI đang đổi món ăn khác cho bạn...",
+                    loadingMessageResId = R.string.loading_msg_swap,
+                    loadingMessageArgs = emptyList(),
                     errorMessage = null
                 )
             }
@@ -442,10 +448,70 @@ class MealPlanViewModel : ViewModel() {
         }
     }
 
-    // ═══════════════════════════════════════════════════
-    // HELPER PROPERTIES
-    // ═══════════════════════════════════════════════════
+    /**
+     * Cập nhật món ăn bằng tay (không qua AI) và tự tính lại Calo + Protein toàn bộ thực đơn.
+     */
+    fun updateMealManually(
+        dayIndex: Int,
+        mealType: String,
+        name: String,
+        calories: Int,
+        protein: Int,
+        ingredients: List<Ingredient>,
+        recipe: String
+    ) {
+        val uid = mealRepository.currentUid ?: return
+        val currentPlan = _uiState.value.mealPlan ?: return
+        val day = currentPlan.days.getOrNull(dayIndex) ?: return
+        val meal = day.meals[mealType] ?: return
 
+        viewModelScope.launch {
+            try {
+                val updatedMeal = meal.copy(
+                    name = name,
+                    totalCalories = calories,
+                    totalProtein = protein,
+                    ingredients = ingredients,
+                    recipe = recipe
+                )
+
+                val updatedMeals = day.meals.toMutableMap().apply {
+                    put(mealType, updatedMeal)
+                }
+
+                val updatedDay = day.copy(
+                    meals = updatedMeals,
+                    totalCalories = updatedMeals.values.sumOf { it.totalCalories },
+                    totalProtein = updatedMeals.values.sumOf { it.totalProtein }
+                )
+
+                val updatedDays = currentPlan.days.toMutableList().apply {
+                    set(dayIndex, updatedDay)
+                }
+
+                val updatedPlan = currentPlan.copy(
+                    days = updatedDays,
+                    totalCalories = updatedDays.sumOf { it.totalCalories }
+                )
+
+                // Lưu vào database
+                mealRepository.saveMealPlan(uid, updatedPlan)
+
+                // Cập nhật UI State
+                _uiState.update {
+                    it.copy(
+                        mealPlan = updatedPlan,
+                        errorMessage = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = "Lỗi khi lưu món ăn: ${e.message}")
+                }
+            }
+        }
+    }
+    // Hàm hỗ trợ PROPERTIES
     /** DayPlan đang được chọn (cho MealPlanWeekScreen) */
     val selectedDay: DayPlan?
         get() {
@@ -460,11 +526,7 @@ class MealPlanViewModel : ViewModel() {
     fun getMeal(dayIndex: Int, mealType: String): Meal? {
         return _uiState.value.mealPlan?.days?.getOrNull(dayIndex)?.meals?.get(mealType)
     }
-
-    // ═══════════════════════════════════════════════════
     // PRIVATE
-    // ═══════════════════════════════════════════════════
-
     /**
      * Load meal plan tuần hiện tại từ Firestore.
      * Nếu không có plan tuần này → thử load plan gần nhất.

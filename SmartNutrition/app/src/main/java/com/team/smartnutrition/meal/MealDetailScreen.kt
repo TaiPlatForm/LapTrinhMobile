@@ -1,4 +1,4 @@
-package com.team.smartnutrition.meal
+﻿package com.team.smartnutrition.meal
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,13 +25,17 @@ import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 /**
- * ═══════════════════════════════════════════
  * MODULE 3 - Chi tiết bữa ăn
- * ═══════════════════════════════════════════
  *
  * Nhận dayIndex + mealType từ nav args.
  * Đọc Meal từ shared ViewModel (data load từ Firestore cache → gần instant).
@@ -92,6 +96,8 @@ fun MealDetailScreen(
         viewModel.loadMealDetail(dayIndex, mealType)
     }
 
+    var showEditDialog by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
@@ -100,6 +106,12 @@ fun MealDetailScreen(
                     onBackClick = { navController.popBackStack() },
                     actions = {
                         if (meal != null) {
+                            IconButton(onClick = { showEditDialog = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = stringResource(R.string.edit)
+                                )
+                            }
                             IconButton(onClick = { viewModel.changeSpecificMeal(dayIndex, mealType) }) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
@@ -183,15 +195,44 @@ fun MealDetailScreen(
         }
 
         if (uiState.isGenerating) {
-            GeneratingDialog(message = uiState.loadingMessage)
+            GeneratingDialog(
+                message = stringResource(
+                    uiState.loadingMessageResId,
+                    *uiState.loadingMessageArgs.toTypedArray()
+                )
+            )
+        }
+
+        if (showEditDialog && meal != null) {
+            EditMealDialog(
+                meal = meal,
+                onDismiss = { showEditDialog = false },
+                onSave = { name, calories, protein, ingredientsText, recipeText ->
+                    val parsedIngredients = ingredientsText.lineSequence()
+                        .filter { it.isNotBlank() }
+                        .map { line ->
+                            val parts = line.split(":", limit = 2)
+                            val ingName = parts.getOrNull(0)?.trim() ?: ""
+                            val amount = parts.getOrNull(1)?.trim() ?: ""
+                            Ingredient(ingName, amount)
+                        }
+                        .toList()
+                    viewModel.updateMealManually(
+                        dayIndex = dayIndex,
+                        mealType = mealType,
+                        name = name,
+                        calories = calories,
+                        protein = protein,
+                        ingredients = parsedIngredients,
+                        recipe = recipeText
+                    )
+                    showEditDialog = false
+                }
+            )
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
 // DETAIL CONTENT
-// ═══════════════════════════════════════════════════════════
-
 @Composable
 private fun MealDetailContent(meal: Meal, modifier: Modifier = Modifier) {
     LazyColumn(
@@ -265,11 +306,7 @@ private fun MealDetailContent(meal: Meal, modifier: Modifier = Modifier) {
         item { Spacer(Modifier.height(24.dp)) }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
 // SUB-COMPONENTS
-// ═══════════════════════════════════════════════════════════
-
 @Composable
 private fun NutritionChip(label: String, containerColor: Color) {
     Surface(
@@ -348,3 +385,92 @@ private fun GeneratingDialog(message: String) {
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditMealDialog(
+    meal: Meal,
+    onDismiss: () -> Unit,
+    onSave: (name: String, calories: Int, protein: Int, ingredientsText: String, recipe: String) -> Unit
+) {
+    var name by remember { mutableStateOf(meal.name) }
+    var caloriesStr by remember { mutableStateOf(meal.totalCalories.toString()) }
+    var proteinStr by remember { mutableStateOf(meal.totalProtein.toString()) }
+    
+    val initialIngredientsText = meal.ingredients.joinToString("\n") { 
+        if (it.amount.isNotEmpty()) "${it.name}: ${it.amount}" else it.name 
+    }
+    var ingredientsText by remember { mutableStateOf(initialIngredientsText) }
+    var recipe by remember { mutableStateOf(meal.recipe) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.edit_meal_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.meal_name_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = caloriesStr,
+                        onValueChange = { caloriesStr = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.calories_kcal)) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = proteinStr,
+                        onValueChange = { proteinStr = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.protein_g)) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                OutlinedTextField(
+                    value = ingredientsText,
+                    onValueChange = { ingredientsText = it },
+                    label = { Text(stringResource(R.string.ingredients_edit_label)) },
+                    placeholder = { Text(stringResource(R.string.ingredients_edit_placeholder)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 5,
+                    minLines = 3
+                )
+                OutlinedTextField(
+                    value = recipe,
+                    onValueChange = { recipe = it },
+                    label = { Text(stringResource(R.string.recipe_edit_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 5,
+                    minLines = 3
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val calories = caloriesStr.toIntOrNull() ?: 0
+                    val protein = proteinStr.toIntOrNull() ?: 0
+                    onSave(name, calories, protein, ingredientsText, recipe)
+                }
+            ) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+

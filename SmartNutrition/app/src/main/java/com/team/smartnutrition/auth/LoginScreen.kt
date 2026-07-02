@@ -1,4 +1,4 @@
-package com.team.smartnutrition.auth
+﻿package com.team.smartnutrition.auth
 
 import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
@@ -32,15 +32,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import com.team.smartnutrition.R
 import com.team.smartnutrition.auth.viewmodel.LoginDestination
 import com.team.smartnutrition.auth.viewmodel.LoginViewModel
 import com.team.smartnutrition.navigation.Screen
 
+private fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) {
+            return currentContext
+        }
+        currentContext = currentContext.baseContext
+    }
+    return null
+}
+
 /**
- * ═══════════════════════════════════════════
  * MODULE 1 - TV1: MÀN HÌNH ĐĂNG NHẬP
- * ═══════════════════════════════════════════
  *
  * Tính năng:
  * - Đăng nhập Email/Password (Firebase Auth)
@@ -95,7 +108,7 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            // ═══ Logo & App Name ═══
+            // Logo & App Name
             Text(
                 text = "🥗",
                 style = MaterialTheme.typography.displayMedium,
@@ -116,7 +129,7 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 40.dp)
             )
 
-            // ═══ Email Field ═══
+            // Email Field
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = { viewModel.updateEmail(it) },
@@ -138,7 +151,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ═══ Password Field ═══
+            // Password Field
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = { viewModel.updatePassword(it) },
@@ -174,7 +187,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ═══ Login Button ═══
+            // Login Button
             Button(
                 onClick = { viewModel.signInWithEmail() },
                 modifier = Modifier
@@ -195,7 +208,7 @@ fun LoginScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ═══ Divider ═══
+            // Divider
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -210,10 +223,10 @@ fun LoginScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ═══ Google Sign-In Button ═══
+            // Google Sign-In Button
             OutlinedButton(
                 onClick = {
-                    val activity = context as? Activity
+                    val activity = context.findActivity()
                     if (activity != null) {
                         viewModel.signInWithGoogle(activity)
                     }
@@ -224,12 +237,22 @@ fun LoginScreen(
                 shape = RoundedCornerShape(12.dp),
                 enabled = !uiState.isLoading
             ) {
-                Text("🔵  " + stringResource(R.string.google_signin))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_google),
+                    contentDescription = "Google Logo",
+                    modifier = Modifier.size(20.dp),
+                    tint = Color.Unspecified
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.google_signin),
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ═══ Register Link ═══
+            // Register Link
             TextButton(
                 onClick = { navController.navigate(Screen.Register.route) },
                 enabled = !uiState.isLoading

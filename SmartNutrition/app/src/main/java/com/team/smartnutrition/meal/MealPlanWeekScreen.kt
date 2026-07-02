@@ -1,4 +1,4 @@
-package com.team.smartnutrition.meal
+﻿package com.team.smartnutrition.meal
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -34,9 +34,7 @@ import com.team.smartnutrition.meal.viewmodel.MealPlanViewModel
 import com.team.smartnutrition.navigation.Screen
 
 /**
- * ═══════════════════════════════════════════
- * MODULE 3 - THỰC ĐƠN AI - Màn hình tổng quan tuần
- * ═══════════════════════════════════════════
+ * Module 3 - Thực đơn AI - Màn hình tổng quan tuần
  *
  * States:
  *   isLoading → LoadingScreen
@@ -73,7 +71,7 @@ fun MealPlanWeekScreen(
             )
         }
 
-        // Error snackbar / card (bottom)
+        // Màu báo lỗi (Error) snackbar / card (bottom)
         uiState.errorMessage?.let { error ->
             ErrorCard(
                 message = error,
@@ -87,15 +85,16 @@ fun MealPlanWeekScreen(
 
         // Full-screen loading dialog overlay khi đang gọi Gemini AI
         if (uiState.isGenerating) {
-            GeneratingDialog(message = uiState.loadingMessage)
+            GeneratingDialog(
+                message = stringResource(
+                    uiState.loadingMessageResId,
+                    *uiState.loadingMessageArgs.toTypedArray()
+                )
+            )
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// EMPTY STATE - Chưa có plan
-// ═══════════════════════════════════════════════════════════
-
+// Trạng thái trống - Chưa có thực đơn
 @Composable
 private fun EmptyMealPlanContent(onGenerateClick: () -> Unit) {
     Column(
@@ -133,11 +132,7 @@ private fun EmptyMealPlanContent(onGenerateClick: () -> Unit) {
         )
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// MAIN CONTENT - Có plan
-// ═══════════════════════════════════════════════════════════
-
+// Nội dung chính - Đã có thực đơn
 @Composable
 private fun MealPlanContent(
     uiState: MealPlanUiState,
@@ -208,13 +203,12 @@ private fun MealPlanContent(
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(24.dp))
-                    Button(
-                        onClick = { onGenerateDayClick(uiState.selectedDayIndex) }
-                    ) {
-                        Icon(Icons.Filled.AutoAwesome, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.generate_daily_plan_btn))
-                    }
+                    GradientButton(
+                        text = stringResource(R.string.generate_daily_plan_btn),
+                        onClick = { onGenerateDayClick(uiState.selectedDayIndex) },
+                        icon = Icons.Filled.AutoAwesome,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                 }
             }
         } else {
@@ -241,11 +235,7 @@ private fun MealPlanContent(
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// DAY TAB ROW
-// ═══════════════════════════════════════════════════════════
-
+// Thanh chọn ngày trong tuần
 @Composable
 private fun DayTabRow(
     days: List<DayPlan>,
@@ -277,14 +267,14 @@ private fun DayTabRow(
                         }
                     } else {
                         when {
-                            day.dayLabel.startsWith("Chủ") || day.dayLabel.contains("Sunday", ignoreCase = true) -> "CN"
-                            day.dayLabel.endsWith("2") || day.dayLabel.contains("Monday", ignoreCase = true) -> "T2"
-                            day.dayLabel.endsWith("3") || day.dayLabel.contains("Tuesday", ignoreCase = true) -> "T3"
-                            day.dayLabel.endsWith("4") || day.dayLabel.contains("Wednesday", ignoreCase = true) -> "T4"
-                            day.dayLabel.endsWith("5") || day.dayLabel.contains("T5") -> "T5"
-                            day.dayLabel.endsWith("6") -> "T6"
-                            day.dayLabel.endsWith("7") -> "T7"
-                            else -> "T${day.dayLabel.lastOrNull() ?: ""}"
+                            day.dayLabel.startsWith("Chủ") || day.dayLabel.contains("Sunday", ignoreCase = true) || day.dayLabel.contains("CN", ignoreCase = true) -> "CN"
+                            day.dayLabel.endsWith("2") || day.dayLabel.contains("Hai", ignoreCase = true) || day.dayLabel.contains("Monday", ignoreCase = true) -> "T2"
+                            day.dayLabel.endsWith("3") || day.dayLabel.contains("Ba", ignoreCase = true) || day.dayLabel.contains("Tuesday", ignoreCase = true) -> "T3"
+                            day.dayLabel.endsWith("4") || day.dayLabel.contains("Tư", ignoreCase = true) || day.dayLabel.contains("Wednesday", ignoreCase = true) -> "T4"
+                            day.dayLabel.endsWith("5") || day.dayLabel.contains("Năm", ignoreCase = true) || day.dayLabel.contains("Thursday", ignoreCase = true) || day.dayLabel.contains("T5") -> "T5"
+                            day.dayLabel.endsWith("6") || day.dayLabel.contains("Sáu", ignoreCase = true) || day.dayLabel.contains("Friday", ignoreCase = true) -> "T6"
+                            day.dayLabel.endsWith("7") || day.dayLabel.contains("Bảy", ignoreCase = true) || day.dayLabel.contains("Saturday", ignoreCase = true) -> "T7"
+                            else -> "T${day.dayLabel.filter { it.isDigit() }.ifEmpty { day.dayLabel.lastOrNull()?.toString() ?: "" }}"
                         }
                     }
                     Text(shortLabel)
@@ -293,11 +283,7 @@ private fun DayTabRow(
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// CALORIE SUMMARY BAR
-// ═══════════════════════════════════════════════════════════
-
+// Thanh tóm tắt lượng Calo
 @Composable
 private fun CalorieSummaryBar(consumed: Int, target: Int, protein: Int) {
     val rawProgress = if (target > 0) consumed.toFloat() / target else 0f
@@ -345,11 +331,7 @@ private fun CalorieSummaryBar(consumed: Int, target: Int, protein: Int) {
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// MEAL CARD
-// ═══════════════════════════════════════════════════════════
-
+// Thẻ thông tin bữa ăn
 @Composable
 private fun MealCard(
     mealType: String,
@@ -416,11 +398,7 @@ private fun MealCard(
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// GENERATING DIALOG - Overlay khi đang gọi AI
-// ═══════════════════════════════════════════════════════════
-
+// Hộp thoại đang tạo thực đơn bằng AI
 @Composable
 private fun GeneratingDialog(message: String) {
     Box(
